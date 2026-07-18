@@ -1,38 +1,51 @@
-# TAP on Doge | Bitcoin Universe Protocol Reference
+# TAP on Doge
 
-> Human docs: index.html
-> Field reference: reference.html
-> Network: Dogecoin
-> Classification: TAP-compatible Dogecoin inscriptions
+> TAP-style token flows adapted for Dogecoin and Doginals tooling.
 
-## Summary
+## Chain and carrier
 
-A Dogecoin-facing TAP integration profile for Doginals-compatible token messages and Digital Matter Theory mint flows.
+- Chain: Dogecoin
+- Carrier: Doginals inscription
+
+## Overview
+
+TAP on Doge uses Dogecoin-native transactions and Doginals-aware tooling. The basic token and DMT fields follow TAP conventions, but address validation, fee funding, and indexing are Dogecoin-specific.
 
 ## State model
 
-TAP-style JSON payloads inscribed through Dogecoin transaction construction and tracked by TAP on Doge-compatible readers.
+Do not carry a Bitcoin address, fee rule, or Ordinals wallet assumption into this environment. Build from active Dogecoin token metadata and verify against the Dogecoin indexer that will read the event.
 
 ## Lifecycle
 
-1. Choose TAP asset
-2. Build Doginals payload
-3. Fund commit
-4. Confirm indexed mint
+1. Load the Dogecoin asset metadata and current deployment state.
+2. Choose token mint or DMT mint based on the asset type.
+3. Build a Doginals inscription with Dogecoin-native funding.
+4. Confirm the indexed result on the Dogecoin network.
 
-## Operations
+## Rules
 
-- Token mint: Mints an available TAP token amount using its active ticker and mint constraints.
-- DMT mint: Mints a Digital Matter Theory unit using a deployment reference and block number.
-- Portfolio lookup: Reads token, activity, and holder state from a compatible Dogecoin TAP reader.
+- Use Dogecoin mainnet addresses for mainnet transactions.
+- Basic TAP asset minting uses token-mint with tick and amt.
+- DMT minting uses dmt-mint with deployment identifier, ticker, and block field.
+- The deployed asset metadata decides which payload fields are accepted.
+- Bitcoin fee and UTXO assumptions do not apply unchanged to Dogecoin.
+- Indexing availability is part of the integration surface, so confirm the active Doge reader before broadcast.
 
-## Safety
+## Field reference
 
-1. TAP on Doge is network-specific. Bitcoin addresses, fee assumptions, and transaction serialization do not carry over.
-2. Build a mint preview from live reader metadata to confirm remaining supply, amount, and DMT deployment details.
-3. This page documents the Universe integration profile. Verify third-party marketplace and indexer behavior independently.
+- p (string, required: yes): Literal tap.
+- op (string, required: yes): token-mint or dmt-mint, based on asset type.
+- tick (string, required: yes): Ticker from the active Doge TAP asset record.
+- amt (integer string, required: token-mint): Requested basic token mint amount.
+- dep (deployment identifier, required: dmt-mint): DMT deployment reference.
+- blk (block value, required: dmt-mint): Block value specified by the DMT rules.
+- network (Dogecoin, required: yes): Must match wallet, address, explorer, and indexer.
 
-## Sources
+## Primary sources
 
 - Tapalytics: https://tapalytics.xyz/
-- TAP Protocol documentation: https://docs.tap-protocol.com/
+- TAP protocol documentation: https://docs.tap-protocol.com/
+
+## Operational caution
+
+This guide deliberately separates Dogecoin transport rules from Bitcoin TAP conventions. Treat the active Dogecoin indexer as the final compatibility target.

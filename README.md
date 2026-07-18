@@ -1,24 +1,35 @@
 # TAP on Doge documentation
 
-A standalone Bitcoin Universe documentation site for TAP on Doge.
+Bitcoin Universe documentation for TAP on Doge on Dogecoin.
 
-## Included
+## What this covers
 
-- `index.html`: visual protocol overview, lifecycle, payload examples, and safety guidance
-- `reference.html`: field reference and integration checklist
-- `llms.txt`: compact machine-readable protocol summary
+TAP on Doge uses Dogecoin-native transactions and Doginals-aware tooling. The basic token and DMT fields follow TAP conventions, but address validation, fee funding, and indexing are Dogecoin-specific.
+
+## State model
+
+Do not carry a Bitcoin address, fee rule, or Ordinals wallet assumption into this environment. Build from active Dogecoin token metadata and verify against the Dogecoin indexer that will read the event.
+
+## Documentation site
+
+- Overview: [index.html](index.html)
+- Field reference: [reference.html](reference.html)
+- Build and verification playbook: [guide.html](guide.html)
+
+## Core rules
+
+- Use Dogecoin mainnet addresses for mainnet transactions.
+- Basic TAP asset minting uses token-mint with tick and amt.
+- DMT minting uses dmt-mint with deployment identifier, ticker, and block field.
+- The deployed asset metadata decides which payload fields are accepted.
+- Bitcoin fee and UTXO assumptions do not apply unchanged to Dogecoin.
+- Indexing availability is part of the integration surface, so confirm the active Doge reader before broadcast.
+
+## Source material
+
+- [Tapalytics](https://tapalytics.xyz/)
+- [TAP protocol documentation](https://docs.tap-protocol.com/)
 
 ## Scope
 
-A Dogecoin-facing TAP integration profile for Doginals-compatible token messages and Digital Matter Theory mint flows.
-
-This repository is a navigational integration guide. The linked primary sources and their active reference implementations are authoritative.
-
-## Sources
-
-- [Tapalytics](https://tapalytics.xyz/)
-- [TAP Protocol documentation](https://docs.tap-protocol.com/)
-
-## Local preview
-
-Open `index.html` in a browser, or serve this directory with any static file server. GitHub Pages can publish directly from the repository root.
+This guide deliberately separates Dogecoin transport rules from Bitcoin TAP conventions. Treat the active Dogecoin indexer as the final compatibility target.
