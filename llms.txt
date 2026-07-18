@@ -1,0 +1,38 @@
+# TAP on Doge | Bitcoin Universe Protocol Reference
+
+> Human docs: index.html
+> Field reference: reference.html
+> Network: Dogecoin
+> Classification: TAP-compatible Dogecoin inscriptions
+
+## Summary
+
+A Dogecoin-facing TAP integration profile for Doginals-compatible token messages and Digital Matter Theory mint flows.
+
+## State model
+
+TAP-style JSON payloads inscribed through Dogecoin transaction construction and tracked by TAP on Doge-compatible readers.
+
+## Lifecycle
+
+1. Choose TAP asset
+2. Build Doginals payload
+3. Fund commit
+4. Confirm indexed mint
+
+## Operations
+
+- Token mint: Mints an available TAP token amount using its active ticker and mint constraints.
+- DMT mint: Mints a Digital Matter Theory unit using a deployment reference and block number.
+- Portfolio lookup: Reads token, activity, and holder state from a compatible Dogecoin TAP reader.
+
+## Safety
+
+1. TAP on Doge is network-specific. Bitcoin addresses, fee assumptions, and transaction serialization do not carry over.
+2. Build a mint preview from live reader metadata to confirm remaining supply, amount, and DMT deployment details.
+3. This page documents the Universe integration profile. Verify third-party marketplace and indexer behavior independently.
+
+## Sources
+
+- Tapalytics: https://tapalytics.xyz/
+- TAP Protocol documentation: https://docs.tap-protocol.com/
