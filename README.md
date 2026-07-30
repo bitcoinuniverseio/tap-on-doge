@@ -1,35 +1,32 @@
-# TAP on Doge documentation
+# TAP on Doge
 
-Bitcoin Universe documentation for TAP on Doge on Dogecoin.
+## Much token. Very onchain.
 
-## What this covers
+TAP on Doge brings token mints and DMT experiences to Dogecoin through Doginals-aware wallets, transactions, and explorers.
 
-TAP on Doge uses Dogecoin-native transactions and Doginals-aware tooling. The basic token and DMT fields follow TAP conventions, but address validation, fee funding, and indexing are Dogecoin-specific.
+TAP on Doge is part of the growing Bitcoin Universe—an onchain landscape for creators, collectors, and communities who want their digital stories to last.
 
-## State model
+## Step inside
 
-Do not carry a Bitcoin address, fee rule, or Ordinals wallet assumption into this environment. Build from active Dogecoin token metadata and verify against the Dogecoin indexer that will read the event.
+- [Experience the story](https://bitcoinuniverse.github.io/tap-on-doge/)
+- [Discover how it works](https://bitcoinuniverse.github.io/tap-on-doge/reference.html)
+- [Start your journey](https://bitcoinuniverse.github.io/tap-on-doge/guide.html)
+- [Open Bitcoin Universe](https://inscribe.bitcoinuniverse.io/)
 
-## Documentation site
+## What makes it special
 
-- Overview: [index.html](index.html)
-- Field reference: [reference.html](reference.html)
-- Build and verification playbook: [guide.html](guide.html)
+- **Discover:** Find Dogecoin-native token communities and their live asset stories.
+- **Mint:** Join supported token or DMT mints through a compatible Doginals experience.
+- **Follow:** Watch confirmed activity appear across Dogecoin-aware explorers and services.
 
-## Core rules
+## A clear onchain promise
 
-- Use Dogecoin mainnet addresses for mainnet transactions.
-- Basic TAP asset minting uses token-mint with tick and amt.
-- DMT minting uses dmt-mint with deployment identifier, ticker, and block field.
-- The deployed asset metadata decides which payload fields are accepted.
-- Bitcoin fee and UTXO assumptions do not apply unchanged to Dogecoin.
-- Indexing availability is part of the integration surface, so confirm the active Doge reader before broadcast.
+TAP-style messages meet Doginals inscriptions and Dogecoin funding. Compatible services bring the asset metadata and confirmed activity together.
 
-## Source material
+## Stay in control
 
-- [Tapalytics](https://tapalytics.xyz/)
-- [TAP protocol documentation](https://docs.tap-protocol.com/)
+Use Dogecoin addresses and Dogecoin-native wallets for these transactions. Confirm the asset type, recipient, inscription, funding inputs, and miner fee before signing.
 
-## Scope
+---
 
-This guide deliberately separates Dogecoin transport rules from Bitcoin TAP conventions. Treat the active Dogecoin indexer as the final compatibility target.
+Presented by [Bitcoin Universe](https://github.com/bitcoinuniverse).
