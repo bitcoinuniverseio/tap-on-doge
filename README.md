@@ -4,7 +4,7 @@
 
 TAP on Doge brings token mints and DMT experiences to Dogecoin through Doginals-aware wallets, transactions, and explorers.
 
-TAP on Doge is part of the growing Bitcoin Universe—an onchain landscape for creators, collectors, and communities who want their digital stories to last.
+TAP on Doge is part of the growing Bitcoin Universe, an onchain landscape for creators, collectors, and communities who want their digital stories to last.
 
 ## Step inside
 
