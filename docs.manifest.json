@@ -4,7 +4,7 @@
   "name": "TAP on Doge",
   "classification": "protocol",
   "repository": "bitcoinuniverseio/tap-on-doge",
-  "documentationUrl": "https://docs.bitcoinuniverse.io/protocols/tap-on-doge",
+  "documentationUrl": "https://docs.bitcoinuniverse.io/protocols/tap_doge/",
   "docsRoot": ".",
   "sourceRef": "main",
   "lifecycle": "experimental",
