@@ -1,23 +1,411 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>TAP on Doge — Doginals energy meets programmable tokens</title>
-  <meta name="description" content="TAP on Doge brings token mints and DMT experiences to Dogecoin through Doginals-aware wallets, transactions, and explorers.">
-  <meta name="theme-color" content="#09090f">
-  <link rel="stylesheet" href="styles.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TAP on Doge: the TAP token protocol on Dogecoin inscriptions</title>
+<meta name="description" content="Documentation for TAP on Doge, the TAP token protocol carried by Doginals inscriptions on Dogecoin mainnet: specification, guide, indexer semantics, test vectors, and a payload validator.">
+<link rel="canonical" href="https://bitcoinuniverseio.github.io/tap-on-doge/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="TAP on Doge documentation">
+<meta property="og:title" content="TAP on Doge: the TAP token protocol on Dogecoin inscriptions">
+<meta property="og:description" content="Specification, guide, indexer semantics, test vectors, and a payload validator for TAP on Dogecoin mainnet.">
+<meta property="og:url" content="https://bitcoinuniverseio.github.io/tap-on-doge/">
+<meta property="og:image" content="https://bitcoinuniverseio.github.io/tap-on-doge/og.svg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#f7f1e4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#17120d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css">
 </head>
-<body style="--accent:#d6a633;--accent-2:#fff1a8">
-<div class="topbar"><div class="wrap nav"><a class="brand" href="index.html"><span class="brand-mark">Ð</span><span>TAP on Doge</span></a><nav class="nav-links" aria-label="Main navigation"><a href="index.html" aria-current="page">Home</a><a href="reference.html">Discover</a><a href="guide.html">Get started</a><a class="nav-cta" href="https://inscribe.bitcoinuniverse.io/">Open Bitcoin Universe ↗</a></nav></div></div>
-<main>
-  <div class="wrap hero">
-    <div><div class="eyebrow">Doginals energy meets programmable tokens</div><h1>Much token. Very onchain<span class="gradient">.</span></h1><p class="lede">TAP on Doge brings token mints and DMT experiences to Dogecoin through Doginals-aware wallets, transactions, and explorers.</p><div class="actions"><a class="button primary" href="guide.html">Start your journey →</a><a class="button secondary" href="reference.html">Discover how it works</a></div></div>
-    <div class="hero-art" aria-hidden="true"><div class="orbit"><div class="core">Ð</div><span class="spark one">Dogecoin</span><span class="spark two">community</span><span class="spark three">onchain</span></div></div>
+<body data-base="">
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-head">
+  <div class="wrap head-row">
+    <a class="brand" href="index.html"><span class="mark" aria-hidden="true">Ð</span><span>TAP on Doge<small>Bitcoin Universe</small></span></a>
+    <nav class="site-nav" aria-label="Documentation sections">
+      <ul>
+        <li><a href="index.html" aria-current="page">Overview</a></li>
+        <li><a href="spec.html">Specification</a></li>
+        <li><a href="guide.html">Guide</a></li>
+        <li><a href="reference.html">Reference</a></li>
+        <li><a href="vectors.html">Test vectors</a></li>
+        <li><a href="validator.html">Validator</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+    </nav>
+    <div class="head-tools">
+      <div class="search">
+        <label class="skip" for="q">Search this documentation</label>
+        <input id="q" type="search" placeholder="Search, or press /" autocomplete="off" spellcheck="false">
+        <div id="search-results" class="search-results" hidden role="region" aria-label="Search results" aria-live="polite"></div>
+      </div>
+      <button id="theme-toggle" class="theme-btn" type="button" hidden>☽</button>
+    </div>
   </div>
-  <div class="band"><div class="wrap band-inner"><strong>Born from Dogecoin. Built for its communities.</strong><span>Built for curious humans, collectors, creators, and communities.</span></div></div>
-  <section><div class="wrap"><div class="section-head"><div><div class="eyebrow">Why it matters</div><h2>A Dogecoin-native path from idea to collectible.</h2></div><p>TAP-style messages meet Doginals inscriptions and Dogecoin funding. Compatible services bring the asset metadata and confirmed activity together.</p></div><div class="grid"><article class="card"><span class="num">01 / EXPERIENCE</span><h3>Discover</h3><p>Find Dogecoin-native token communities and their live asset stories.</p></article><article class="card"><span class="num">02 / EXPERIENCE</span><h3>Mint</h3><p>Join supported token or DMT mints through a compatible Doginals experience.</p></article><article class="card"><span class="num">03 / EXPERIENCE</span><h3>Follow</h3><p>Watch confirmed activity appear across Dogecoin-aware explorers and services.</p></article></div></div></section>
-  <section><div class="wrap spotlight"><div class="eyebrow">The protocol in plain language</div><h2>A clear idea with an onchain heartbeat.</h2><p>TAP-style messages meet Doginals inscriptions and Dogecoin funding. Compatible services bring the asset metadata and confirmed activity together.</p><div class="fact-list" style="margin-top:34px"><div class="fact"><strong>Dogecoin-native</strong><span>Addresses, fees, funding, and confirmations all belong to Dogecoin.</span></div><div class="fact"><strong>Token mints</strong><span>Basic mint activity carries a ticker and amount.</span></div><div class="fact"><strong>DMT mints</strong><span>DMT activity follows the identity and block terms of its deployment.</span></div><div class="fact"><strong>Doginals</strong><span>Inscription-aware services connect the payload to its onchain history.</span></div></div></div></section>
-  <section><div class="wrap"><div class="spotlight"><div class="eyebrow">Ready to explore?</div><h2>See what your next Bitcoin Universe moment can become.</h2><p>Explore supported experiences, connect a wallet when you are ready, and review every transaction before it leaves your hands.</p><div class="actions"><a class="button primary" href="https://inscribe.bitcoinuniverse.io/">Open Bitcoin Universe ↗</a><a class="button secondary" href="guide.html">See the journey</a></div></div></div></section>
+</header>
+
+<main id="main" class="page">
+<div class="wrap">
+
+<section class="hero">
+  <div class="hero-grid">
+    <div>
+      <p class="crumb">Dogecoin mainnet protocol documentation</p>
+      <h1>TAP on Doge</h1>
+      <p class="lede">TAP is an inscribed token protocol from the Trac ecosystem. TAP on Doge is that protocol carried by Doginals inscriptions on Dogecoin. The operation names are shared with TAP on Bitcoin. Almost everything underneath them is not.</p>
+      <ul class="pillrow">
+        <li class="pill">Chain <b>Dogecoin mainnet</b></li>
+        <li class="pill">Protocol tag <b><code>p: "tap"</code></b></li>
+        <li class="pill">Document <b>v1.0.0</b></li>
+        <li class="pill on">Lifecycle <b>Experimental</b></li>
+      </ul>
+      <div class="cta">
+        <a class="btn" href="guide.html">Read the guide</a>
+        <a class="btn ghost" href="validator.html">Check a payload</a>
+      </div>
+    </div>
+    <div>
+      <div class="dg-wrap">
+        <svg viewBox="0 0 420 300" role="img" aria-labelledby="heroT heroD">
+          <title id="heroT">A TAP payload becoming a confirmed Dogecoin inscription</title>
+          <desc id="heroD">A JSON payload with p tap and op token-mint is split into 520 byte chunks. The chunks are written as push data into the scriptSig of the first input of a reveal transaction, which is confirmed by Dogecoin blocks arriving one per minute.</desc>
+          <rect x="10" y="10" width="400" height="74" rx="14" class="svg-fill svg-line" stroke-width="1.5"/>
+          <text x="26" y="36" class="svg-muted" font-size="11" font-weight="700">JSON PAYLOAD</text>
+          <text x="26" y="57" class="svg-ink" font-size="13" font-family="ui-monospace, monospace">{ "p": "tap", "op": "token-mint",</text>
+          <text x="26" y="74" class="svg-ink" font-size="13" font-family="ui-monospace, monospace">&#160;&#160;"tick": "tap", "amt": "1000" }</text>
+
+          <path d="M210 84 L210 106" class="svg-accent-s svg-none" stroke-width="2" marker-end="url(#hArrow)"/>
+          <defs>
+            <marker id="hArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+              <path d="M0 0 L10 5 L0 10 z" class="svg-accent"/>
+            </marker>
+          </defs>
+
+          <rect x="10" y="112" width="400" height="66" rx="14" class="svg-fill-2 svg-line" stroke-width="1.5"/>
+          <text x="26" y="134" class="svg-muted" font-size="11" font-weight="700">SCRIPTSIG PUSH DATA, INPUT 0</text>
+          <rect x="26" y="142" width="52" height="24" rx="8" class="svg-accent"/>
+          <text x="52" y="158" text-anchor="middle" font-size="11" font-weight="700" fill="var(--accent-ink)">"ord"</text>
+          <rect x="84" y="142" width="34" height="24" rx="8" class="svg-fill svg-line" stroke-width="1.2"/>
+          <text x="101" y="158" text-anchor="middle" font-size="11" class="svg-ink">n</text>
+          <rect x="124" y="142" width="76" height="24" rx="8" class="svg-fill svg-line" stroke-width="1.2"/>
+          <text x="162" y="158" text-anchor="middle" font-size="10" class="svg-ink">content type</text>
+          <rect x="206" y="142" width="60" height="24" rx="8" class="svg-fill svg-line" stroke-width="1.2"/>
+          <text x="236" y="158" text-anchor="middle" font-size="10" class="svg-ink">chunk 1</text>
+          <rect x="272" y="142" width="60" height="24" rx="8" class="svg-fill svg-line" stroke-width="1.2"/>
+          <text x="302" y="158" text-anchor="middle" font-size="10" class="svg-ink">chunk 2</text>
+          <text x="344" y="159" font-size="12" class="svg-muted">…520 B</text>
+
+          <path d="M210 178 L210 200" class="svg-accent-s svg-none" stroke-width="2" marker-end="url(#hArrow)"/>
+
+          <text x="26" y="220" class="svg-muted" font-size="11" font-weight="700">DOGECOIN BLOCKS, ONE PER MINUTE</text>
+          <g>
+            <rect x="26" y="230" width="46" height="40" rx="10" class="svg-accent"/>
+            <text x="49" y="255" text-anchor="middle" font-size="11" font-weight="700" fill="var(--accent-ink)">+1</text>
+            <rect x="80" y="230" width="46" height="40" rx="10" class="svg-fill-2 svg-line" stroke-width="1.2"/>
+            <text x="103" y="255" text-anchor="middle" font-size="11" class="svg-ink">+2</text>
+            <rect x="134" y="230" width="46" height="40" rx="10" class="svg-fill-2 svg-line" stroke-width="1.2"/>
+            <text x="157" y="255" text-anchor="middle" font-size="11" class="svg-ink">+3</text>
+            <rect x="188" y="230" width="46" height="40" rx="10" class="svg-fill-2 svg-line" stroke-width="1.2"/>
+            <text x="211" y="255" text-anchor="middle" font-size="11" class="svg-ink">+4</text>
+            <rect x="242" y="230" width="46" height="40" rx="10" class="svg-fill-2 svg-line" stroke-width="1.2"/>
+            <text x="265" y="255" text-anchor="middle" font-size="11" class="svg-ink">+5</text>
+            <rect x="296" y="230" width="46" height="40" rx="10" class="svg-fill-2 svg-line" stroke-width="1.2"/>
+            <text x="319" y="255" text-anchor="middle" font-size="11" class="svg-ink">+6</text>
+          </g>
+          <text x="352" y="255" font-size="12" class="svg-accent" font-weight="700">6 min</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<h2 id="what">What TAP on Doge is</h2>
+
+<p>TAP is a token protocol whose messages are plain JSON text inside inscriptions. An inscription carrying <code>{"p": "tap", …}</code> is a TAP message. Indexers read those messages in the order the chain confirms them and derive balances from them. There is no contract, no sidechain, and no bridge: the chain orders the messages and the indexers agree on what the ordering means.</p>
+
+<p>TAP on Doge is the same protocol with the same operation names, indexed over <strong>Doginals</strong> inscriptions on Dogecoin mainnet. Externally it behaves the way DRC-20 does, so a marketplace or wallet that already handles DRC-20 balances can handle TAP balances by changing which indexer it asks and which protocol tag it writes. Internally it adds operations DRC-20 does not have: batch sends, inscription-based trades, and delegated signing authorities.</p>
+
+<div class="note">
+  <b class="lbl">Origin and attribution</b>
+  <p>TAP was created by <a href="https://github.com/Trac-Systems">Trac Systems</a>, not by Bitcoin Universe. The Dogecoin specification this documentation follows is published at <a href="https://github.com/Trac-Systems/doge-tap-protocol-specs">Trac-Systems/doge-tap-protocol-specs</a>, and it names <a href="https://github.com/Trac-Systems/ord-dogecoin">ord-dogecoin</a> as the Doginals client whose behaviour the protocol is defined against. This site documents the protocol as the ecosystem operates it, and marks every Bitcoin Universe indexing decision as such.</p>
+</div>
+
+<h2 id="differences">What Dogecoin actually changes</h2>
+
+<p>It is tempting to describe TAP on Doge as "TAP, but on Dogecoin". That framing causes real losses, because the advice people carry over does not survive the trip. Five things change.</p>
+
+<figure>
+  <div class="dg-wrap">
+    <svg viewBox="0 0 720 330" role="img" aria-labelledby="carrT carrD">
+      <title id="carrT">One payload, two different carriers</title>
+      <desc id="carrD">The same TAP JSON payload sits at the top. On the left, the Bitcoin carrier places it inside a taproot witness envelope beginning OP_FALSE OP_IF ord, where witness bytes are discounted to one quarter weight and one transaction holds the whole payload. On the right, the Dogecoin carrier places it as bare push data in the scriptSig of input zero, in 520 byte chunks, with no witness and no discount, continuing into further transactions when the chunks do not fit.</desc>
+
+      <rect x="215" y="8" width="290" height="52" rx="14" class="svg-fill svg-line" stroke-width="1.5"/>
+      <text x="360" y="30" text-anchor="middle" class="svg-muted" font-size="11" font-weight="700">THE SAME JSON PAYLOAD</text>
+      <text x="360" y="49" text-anchor="middle" class="svg-ink" font-size="12" font-family="ui-monospace, monospace">{"p":"tap","op":"token-transfer",…}</text>
+
+      <path d="M300 60 L190 92" class="svg-btc-s svg-none" stroke-width="2" marker-end="url(#cArrowB)"/>
+      <path d="M420 60 L530 92" class="svg-accent-s svg-none" stroke-width="2" marker-end="url(#cArrowD)"/>
+      <defs>
+        <marker id="cArrowB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" class="svg-btc"/></marker>
+        <marker id="cArrowD" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" class="svg-accent"/></marker>
+      </defs>
+
+      <rect x="12" y="96" width="330" height="222" rx="16" class="svg-fill-2 svg-line" stroke-width="1.5"/>
+      <text x="32" y="122" class="svg-btc" font-size="12" font-weight="800">TAP ON BITCOIN</text>
+      <text x="32" y="146" class="svg-ink" font-size="12">Carrier: taproot witness envelope</text>
+      <rect x="32" y="158" width="290" height="42" rx="10" class="svg-fill svg-line" stroke-width="1.2"/>
+      <text x="44" y="176" class="svg-ink" font-size="11" font-family="ui-monospace, monospace">OP_FALSE OP_IF "ord" … OP_ENDIF</text>
+      <text x="44" y="192" class="svg-muted" font-size="11">inside the witness of the reveal input</text>
+      <text x="32" y="224" class="svg-ink" font-size="12">Witness bytes count at one quarter weight</text>
+      <text x="32" y="246" class="svg-ink" font-size="12">One commit plus one reveal carries it all</text>
+      <text x="32" y="268" class="svg-ink" font-size="12">Ordinals address, bech32m <tspan font-family="ui-monospace, monospace">bc1p…</tspan></text>
+      <text x="32" y="296" class="svg-btc" font-size="12" font-weight="700">A confirmation is about 10 minutes</text>
+
+      <rect x="378" y="96" width="330" height="222" rx="16" class="svg-fill-2 svg-line" stroke-width="1.5"/>
+      <text x="398" y="122" class="svg-accent" font-size="12" font-weight="800">TAP ON DOGE</text>
+      <text x="398" y="146" class="svg-ink" font-size="12">Carrier: scriptSig push data, input 0</text>
+      <rect x="398" y="158" width="290" height="42" rx="10" class="svg-fill svg-line" stroke-width="1.2"/>
+      <text x="410" y="176" class="svg-ink" font-size="11" font-family="ui-monospace, monospace">"ord" n &lt;type&gt; n-1 &lt;chunk&gt; …</text>
+      <text x="410" y="192" class="svg-muted" font-size="11">no witness, no OP_IF, pure pushes</text>
+      <text x="398" y="224" class="svg-ink" font-size="12">Every byte counts at full rate</text>
+      <text x="398" y="246" class="svg-ink" font-size="12">Large content spans a chain of transactions</text>
+      <text x="398" y="268" class="svg-ink" font-size="12">Payment address, base58 <tspan font-family="ui-monospace, monospace">D…</tspan></text>
+      <text x="398" y="296" class="svg-accent" font-size="12" font-weight="700">A confirmation is about 1 minute</text>
+    </svg>
+  </div>
+  <figcaption>The payload format is shared. The carrier is not: Dogecoin has no Taproot, so the inscription rides in the input script instead of the witness.</figcaption>
+</figure>
+
+<div class="scroll-x">
+<table>
+  <caption>The five differences that change how you should act, not just how the chain looks.</caption>
+  <thead><tr><th>Concern</th><th>TAP on Bitcoin</th><th>TAP on Doge</th><th>Why it matters to you</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><b>Block target</b></td>
+      <td>10 minutes</td>
+      <td>1 minute</td>
+      <td>"Wait for 6 confirmations" means about an hour on Bitcoin and about six minutes here. The number is the same and the safety is not.</td>
+    </tr>
+    <tr>
+      <td><b>Inscription carrier</b></td>
+      <td>Taproot witness envelope</td>
+      <td>Push data in the scriptSig of input 0</td>
+      <td>There is no Taproot on Dogecoin. Tooling that builds a witness envelope produces a transaction no Doginals indexer will read.</td>
+    </tr>
+    <tr>
+      <td><b>Size and fees</b></td>
+      <td>Witness bytes discounted to one quarter weight</td>
+      <td>No witness, therefore no discount</td>
+      <td>Content that is cheap on Bitcoin per byte is not here, and large content is normal on Dogecoin, so the two effects push in opposite directions.</td>
+    </tr>
+    <tr>
+      <td><b>Large content</b></td>
+      <td>Fits one reveal transaction</td>
+      <td>Continues across a chain of transactions</td>
+      <td>A partially revealed inscription indexes as nothing at all. An interrupted chain is spent money and no asset.</td>
+    </tr>
+    <tr>
+      <td><b>Addresses</b></td>
+      <td>Bech32m ordinals address</td>
+      <td>Base58check payment address, version byte <code>0x1e</code></td>
+      <td>Dogecoin has no separate ordinals address role. A <code>bc1p…</code> recipient pasted into a <code>token-send</code> is unrecoverable.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="time">A confirmation is a unit of time, and the unit changed</h2>
+
+<p>This is the single most misread difference, so it is worth seeing rather than reading. The same confirmation count buys one tenth the elapsed time on Dogecoin that it buys on Bitcoin.</p>
+
+<figure>
+  <div class="dg-wrap">
+    <svg viewBox="0 0 720 220" role="img" aria-labelledby="timeT timeD">
+      <title id="timeT">Six confirmations on Dogecoin against six confirmations on Bitcoin</title>
+      <desc id="timeD">Two timelines on the same scale of sixty minutes. The Dogecoin timeline reaches six confirmations after six minutes and then keeps producing blocks, reaching about sixty confirmations by the end of the hour. The Bitcoin timeline reaches six confirmations only at the end of the same hour.</desc>
+
+      <text x="12" y="24" class="svg-muted" font-size="11" font-weight="700">ONE HOUR OF WALL CLOCK TIME</text>
+
+      <line x1="12" y1="44" x2="708" y2="44" class="svg-line" stroke-width="1" stroke-dasharray="3 4"/>
+      <text x="12" y="38" class="svg-muted" font-size="10">0 min</text>
+      <text x="360" y="38" text-anchor="middle" class="svg-muted" font-size="10">30 min</text>
+      <text x="708" y="38" text-anchor="end" class="svg-muted" font-size="10">60 min</text>
+
+      <text x="12" y="76" class="svg-accent" font-size="12" font-weight="800">DOGECOIN</text>
+      <rect x="12" y="86" width="696" height="30" rx="10" class="svg-fill-2 svg-line" stroke-width="1.2"/>
+      <rect x="12" y="86" width="69.6" height="30" rx="10" class="svg-accent"/>
+      <text x="24" y="106" font-size="11" font-weight="700" fill="var(--accent-ink)">6 conf</text>
+      <text x="92" y="106" class="svg-ink" font-size="11">and then another 54 confirmations before the hour is out</text>
+      <text x="12" y="132" class="svg-muted" font-size="11">6 confirmations = about 6 minutes</text>
+
+      <text x="12" y="164" class="svg-btc" font-size="12" font-weight="800">BITCOIN</text>
+      <rect x="12" y="174" width="696" height="30" rx="10" class="svg-fill-2 svg-line" stroke-width="1.2"/>
+      <rect x="12" y="174" width="696" height="30" rx="10" class="svg-btc"/>
+      <text x="24" y="194" font-size="11" font-weight="700" fill="var(--bg)">6 conf = about 60 minutes</text>
+    </svg>
+  </div>
+  <figcaption>Both bars show six confirmations. Only the elapsed time differs, and it differs by a factor of ten. The <a href="validator.html#comparator">confirmation comparator</a> will convert any count you care about.</figcaption>
+</figure>
+
+<div class="note warn">
+  <b class="lbl">Read this before reusing a policy</b>
+  <p>Elapsed time is not accumulated work. Dogecoin and Bitcoin are separate chains with separate hashrate and separate proof-of-work functions, so sixty Dogecoin blocks and six Bitcoin blocks are equal only on a clock. Choose a confirmation policy from the value at risk and the reorg depths the chain actually produces, not by copying a number across chains. The <a href="reference.html#reorg">reference page</a> gives the reorg window the Bitcoin Universe Dogecoin index can recover from.</p>
+</div>
+
+<h2 id="ops">The operations, at a glance</h2>
+
+<p>Every TAP operation name is prefixed. There is no bare <code>mint</code> and no bare <code>transfer</code> in this protocol. The prefixes are the difference between TAP and DRC-20, and they are the most common thing to get wrong.</p>
+
+<div class="scroll-x">
+<table>
+  <caption>The complete operation set for TAP on Dogecoin. The <a href="spec.html#operations">specification</a> gives the field-level rules.</caption>
+  <thead><tr><th>Operation</th><th>Group</th><th>What it does</th><th>Tapped?</th></tr></thead>
+  <tbody>
+    <tr><td><code>token-deploy</code></td><td>External</td><td>Creates a ticker with a maximum supply and an optional per-mint limit.</td><td>No</td></tr>
+    <tr><td><code>token-mint</code></td><td>External</td><td>Mints from a deployed ticker, within its per-mint limit.</td><td>No</td></tr>
+    <tr><td><code>token-transfer</code></td><td>External</td><td>Parks an amount as a transfer inscription that can then be sent to anyone.</td><td>No</td></tr>
+    <tr><td><code>token-send</code></td><td>Internal</td><td>Moves many amounts of many tickers to many recipients at once.</td><td>Yes</td></tr>
+    <tr><td><code>block-transferables</code></td><td>Internal</td><td>Disables incoming inscribe transfers for the tapping address.</td><td>Yes</td></tr>
+    <tr><td><code>unblock-transferables</code></td><td>Internal</td><td>Re-enables incoming inscribe transfers.</td><td>Yes</td></tr>
+    <tr><td><code>token-trade</code></td><td>Internal</td><td>Creates, cancels, or fills an inscription-based trade.</td><td>Yes</td></tr>
+    <tr><td><code>token-auth</code></td><td>Internal</td><td>Creates, uses, or cancels a signing authority that issues redeems.</td><td>Create and cancel only</td></tr>
+    <tr><td><code>privilege-auth</code></td><td>Internal</td><td>Creates or cancels a privilege authority, or records a hashed verification.</td><td>Create and cancel only</td></tr>
+    <tr><td><code>dmt-deploy</code></td><td>DMT</td><td>Deploys a Digital Matter Theory token against an element inscription.</td><td>No</td></tr>
+    <tr><td><code>dmt-mint</code></td><td>DMT</td><td>Mints a Digital Matter Theory token for one block height.</td><td>No</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>"Tapped" means the inscription must be sent from the address that owns it back to that same address after it confirms. Tapping is TAP's approval step, and it is where the protocol gets its name. An untapped internal operation has no effect at all.</p>
+
+<h2 id="support">Support in Bitcoin Universe products</h2>
+
+<p>This table reflects the protocol registry and generated capability snapshot in the Bitcoin Universe codebase, not a roadmap. Where an action is absent it is absent because nothing in the code implements it.</p>
+
+<div class="scroll-x">
+<table>
+  <caption>TAP on Doge, registry id <code>tap_doge</code>, ownership model hybrid, address role payment.</caption>
+  <thead><tr><th>Surface</th><th>State</th><th>Actions</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><b>Marketplace</b></td>
+      <td><span class="part">Feature gated</span>, external execution</td>
+      <td>view, view-collection, view-activity, list, update-listing, unlist, buy, make-offer, accept-offer, cancel-offer, settle, reconcile</td>
+    </tr>
+    <tr>
+      <td><b>Wallet</b></td>
+      <td><span class="yes">Present</span></td>
+      <td>view, send, receive</td>
+    </tr>
+    <tr>
+      <td><b>Inscribe</b></td>
+      <td><span class="yes">Present</span></td>
+      <td>mint</td>
+    </tr>
+    <tr>
+      <td><b>Not supported</b></td>
+      <td><span class="no">sell</span></td>
+      <td>Recorded reason: TAP on Doge has no executable offer workflow on this marketplace surface.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>The marketplace surface is gated behind a deployment feature flag and runs in external execution mode, which means Bitcoin Universe assembles and validates the exact Dogecoin transaction but the authorising signature comes from your wallet. Settlement requires the exact transaction confirmation plus the expected protocol state transition appearing in a later authoritative checkpoint, with a minimum of one confirmation before settlement is considered. Reorg reconciliation is automatic. The <a href="reference.html#universe">reference page</a> describes what the Bitcoin Universe Dogecoin TAP source does and does not claim.</p>
+
+<h2 id="audience">Who this is for</h2>
+
+<ul class="cards">
+  <li class="card">
+    <span class="tag">Token holders</span>
+    <h3>You hold or want TAP-DOGE tokens</h3>
+    <p>Start with the <a href="guide.html">guide</a>. It walks a mint and a transfer end to end, shows what your wallet will display, and explains what to check before signing.</p>
+  </li>
+  <li class="card">
+    <span class="tag">Application developers</span>
+    <h3>You are building on top of TAP on Doge</h3>
+    <p>Read the <a href="spec.html">specification</a> for the payload rules and the <a href="reference.html">reference</a> for confirmation, mempool, and reorg semantics. Then run your payloads through the <a href="validator.html">validator</a>.</p>
+  </li>
+  <li class="card">
+    <span class="tag">Indexer implementers</span>
+    <h3>You are writing or auditing an indexer</h3>
+    <p>The <a href="spec.html#envelope">envelope rules</a> and the <a href="vectors.html">test vectors</a> are the parts to hold yourself to. The <a href="reference.html#checklist">implementation checklist</a> lists the decisions you must make explicitly.</p>
+  </li>
+</ul>
+
+<h2 id="related">Related protocols and where TAP sits</h2>
+
+<ul>
+  <li><a href="https://bitcoinuniverseio.github.io/tap/">TAP on Bitcoin</a>: the same protocol on Bitcoin mainnet. The operation names match exactly. The carrier, the fee model, the address format, and the meaning of a confirmation do not.</li>
+  <li><strong>DRC-20</strong>: the Dogecoin token protocol TAP mirrors externally. Its operations are <code>deploy</code>, <code>mint</code>, and <code>transfer</code> under <code>p: "drc-20"</code>. Those are different messages under a different protocol tag, and mixing the two produces an inscription no indexer reads.</li>
+  <li><strong>Doginals</strong>: the inscription layer TAP on Doge rides on. Doginals is what puts arbitrary content on Dogecoin; TAP is one thing you can write with it.</li>
+  <li><strong>Dogemap</strong>: indexed by TAP indexers exactly as bitmap is on Bitcoin, using the name <code>dogemap</code> in place of <code>bitmap</code>.</li>
+  <li><strong>DMT</strong>: Digital Matter Theory tokens, supported through <code>dmt-deploy</code> and <code>dmt-mint</code> with element fields 4, 10, and 11.</li>
+</ul>
+
+<h2 id="entry">Entry points</h2>
+
+<ul class="cards">
+  <li class="card"><span class="tag">Normative</span><h3><a href="spec.html">Specification</a></h3><p>Numbered rules: payload encoding, the Doginals envelope, identifiers, every operation, state transitions, and the conditions that make a message invalid.</p></li>
+  <li class="card"><span class="tag">Practical</span><h3><a href="guide.html">Guide</a></h3><p>A worked mint and a worked transfer, what tapping looks like in a wallet, and the Dogecoin specific mistakes that cost money.</p></li>
+  <li class="card"><span class="tag">Operational</span><h3><a href="reference.html">Reference</a></h3><p>Terminology, indexer semantics for confirmation, mempool and reorg on Dogecoin, fee and size behaviour, limitations, security, and an implementation checklist.</p></li>
+  <li class="card"><span class="tag">Evidence</span><h3><a href="vectors.html">Test vectors</a></h3><p>Accepted and rejected payloads with the exact reason each one is accepted or rejected.</p></li>
+  <li class="card"><span class="tag">Interactive</span><h3><a href="validator.html">Validator and comparator</a></h3><p>Check a payload in your browser, and convert any confirmation count into elapsed time on both chains.</p></li>
+  <li class="card"><span class="tag">History</span><h3><a href="changelog.html">Changelog</a></h3><p>What changed in this documentation and in the protocol activations it describes.</p></li>
+</ul>
+
+<h2 id="security">Reporting a security issue</h2>
+
+<p>Report vulnerabilities privately through GitHub private vulnerability reporting on <a href="https://github.com/bitcoinuniverseio/tap-on-doge/security/advisories/new">this repository's security advisories page</a>. Do not open a public issue for a vulnerability. If a finding concerns the TAP protocol itself rather than this documentation or a Bitcoin Universe product, report it to <a href="https://github.com/Trac-Systems">Trac Systems</a> as well.</p>
+
+</div>
 </main>
-<footer><div class="wrap footer-inner"><span>TAP on Doge on Dogecoin</span><span>Presented by <a href="https://github.com/bitcoinuniverse/tap-on-doge">Bitcoin Universe</a></span></div></footer></body></html>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <section>
+        <h2>This document</h2>
+        <dl class="meta-list">
+          <div><dt>Owning repository</dt><dd><a href="https://github.com/bitcoinuniverseio/tap-on-doge">bitcoinuniverseio/tap-on-doge</a></dd></div>
+          <div><dt>Source path</dt><dd><code>index.html</code></dd></div>
+          <div><dt>Document version</dt><dd>1.0.0</dd></div>
+          <div><dt>Lifecycle</dt><dd>Experimental</dd></div>
+          <div><dt>Chain and network</dt><dd>Dogecoin mainnet</dd></div>
+          <div><dt>Last verified</dt><dd><time datetime="2026-09-01">2026-09-01</time></dd></div>
+        </dl>
+      </section>
+      <section>
+        <h2>Documentation</h2>
+        <ul>
+          <li><a href="index.html">Overview</a></li>
+          <li><a href="spec.html">Specification</a></li>
+          <li><a href="guide.html">Guide</a></li>
+          <li><a href="reference.html">Reference</a></li>
+          <li><a href="vectors.html">Test vectors</a></li>
+          <li><a href="validator.html">Validator</a></li>
+          <li><a href="changelog.html">Changelog</a></li>
+        </ul>
+      </section>
+      <section>
+        <h2>Elsewhere</h2>
+        <ul>
+          <li><a href="https://docs.bitcoinuniverse.io">docs.bitcoinuniverse.io</a></li>
+          <li><a href="https://bitcoinuniverseio.github.io/tap/">TAP on Bitcoin</a></li>
+          <li><a href="https://github.com/Trac-Systems/doge-tap-protocol-specs">Dogecoin TAP specification</a></li>
+          <li><a href="https://github.com/Trac-Systems/ord-dogecoin">ord-dogecoin</a></li>
+          <li><a href="https://github.com/bitcoinuniverseio/tap-on-doge/edit/main/index.html">Edit this page on GitHub</a></li>
+        </ul>
+      </section>
+    </div>
+    <p class="foot-bottom"><span>TAP on Doge documentation, Bitcoin Universe.</span> <span>TAP is a protocol of Trac Systems.</span> <span>Content licensed under the repository LICENSE.</span></p>
+  </div>
+</footer>
+
+<script src="site.js" defer></script>
+</body>
+</html>

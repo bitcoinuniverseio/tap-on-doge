@@ -1,32 +1,47 @@
 # TAP on Doge
 
-> TAP on Doge brings token mints and DMT experiences to Dogecoin through Doginals-aware wallets, transactions, and explorers.
+> Protocol documentation for TAP, the inscribed token protocol from the Trac ecosystem, as it operates on Dogecoin mainnet through Doginals inscriptions. Document version 1.0.0, lifecycle experimental. Owned by bitcoinuniverseio/tap-on-doge.
 
-## Public experience
+TAP on Doge shares its operation names with TAP on Bitcoin and almost nothing else. Dogecoin has a one-minute block target rather than ten minutes, no Taproot and therefore no witness inscription envelope, no witness fee discount, base58check payment addresses rather than bech32m ordinals addresses, and a culture of much larger inscriptions. This documentation is written so that a reader who has never seen the Bitcoin site can use it, and it marks every place the two chains differ.
 
-- Home: https://bitcoinuniverse.github.io/tap-on-doge/
-- Discover: https://bitcoinuniverse.github.io/tap-on-doge/reference.html
-- Get started: https://bitcoinuniverse.github.io/tap-on-doge/guide.html
-- Bitcoin Universe: https://inscribe.bitcoinuniverse.io/
+## Pages
 
-## The experience
+- [Overview](https://bitcoinuniverseio.github.io/tap-on-doge/index.html): what the protocol is, the five concrete differences Dogecoin introduces, the complete operation list, Bitcoin Universe product support, related protocols, security reporting.
+- [Specification](https://bitcoinuniverseio.github.io/tap-on-doge/spec.html): numbered normative rules. Scope, the Doginals scriptSig envelope, payload encoding, identifiers, tapping, all eleven operations, the balance state model, activation heights, invalid conditions, and three Bitcoin artefacts carried by the published upstream text.
+- [Guide](https://bitcoinuniverseio.github.io/tap-on-doge/guide.html): worked mint, transfer, and batch send; what to check before signing; choosing a confirmation count on a one-minute chain; verified product support; the mistakes that cost money.
+- [Reference](https://bitcoinuniverseio.github.io/tap-on-doge/reference.html): terminology, confirmation semantics, mempool semantics, reorg behaviour, fees and size without a witness discount, the Bitcoin Universe Dogecoin TAP source, limitations, security considerations, implementation checklist.
+- [Test vectors](https://bitcoinuniverseio.github.io/tap-on-doge/vectors.html): accepted and rejected envelope vectors in raw hex, accepted and rejected payloads, address vectors, and state transition tables.
+- [Validator](https://bitcoinuniverseio.github.io/tap-on-doge/validator.html): a client-side TAP on Doge payload validator and a confirmation time comparator. Nothing entered is transmitted.
+- [Changelog](https://bitcoinuniverseio.github.io/tap-on-doge/changelog.html): documentation version history and the Dogecoin mainnet protocol activation heights.
 
-- Discover: Find Dogecoin-native token communities and their live asset stories.
-- Mint: Join supported token or DMT mints through a compatible Doginals experience.
-- Follow: Watch confirmed activity appear across Dogecoin-aware explorers and services.
+## Operations
 
-## In plain language
+Every TAP token operation name is prefixed. There is no bare mint, transfer, deploy, or send; those are the DRC-20 and BRC-20 spellings, and under `p: "tap"` they are read by nobody.
 
-- Dogecoin-native: Addresses, fees, funding, and confirmations all belong to Dogecoin.
-- Token mints: Basic mint activity carries a ticker and amount.
-- DMT mints: DMT activity follows the identity and block terms of its deployment.
-- Doginals: Inscription-aware services connect the payload to its onchain history.
+- External: `token-deploy`, `token-mint`, `token-transfer`
+- Internal: `token-send`, `block-transferables`, `unblock-transferables`, `token-trade`, `token-auth`, `privilege-auth`
+- DMT: `dmt-deploy`, `dmt-mint`
 
-## User safety
+## Key facts
 
-Use Dogecoin addresses and Dogecoin-native wallets for these transactions. Confirm the asset type, recipient, inscription, funding inputs, and miner fee before signing.
+- Chain and network: Dogecoin mainnet. Protocol tag `p: "tap"`.
+- Inscription carrier: push data in the signature script of input 0, never a witness. The sequence is the literal `ord`, a piece count, a content type, then countdown and chunk pairs, with chunks of at most 520 bytes.
+- Large content continues across a chain of transactions. A chain that ends before the countdown reaches zero yields a partial inscription, which indexes as nothing at all.
+- A Bitcoin `OP_FALSE OP_IF` envelope decodes to nothing on Dogecoin, because the parser accepts push opcodes only.
+- Addresses are base58check, version byte `0x1e` for pay-to-public-key-hash (leading `D`) or `0x16` for pay-to-script-hash (leading `9` or `A`). They are case-sensitive and there is no bech32 form.
+- Ticker lengths: exactly 3, or 5 to 32 Unicode symbols below block 5,487,639; 1 to 32 from that height.
+- Activation heights: 4,600,000 first indexed inscription height; 4,771,259 ord wallet 1.0.1 and the start of Dogemap; 5,487,639 ticker widening; 5,497,100 precise DMT field numbers and `blk`.
+- Confirmation: about one minute, so six confirmations is about six minutes rather than about an hour. Elapsed time is not accumulated work.
+- Reorg: the Bitcoin Universe Dogecoin inscription index keeps at most 5 savepoints every 10 blocks within 25 blocks of the tip, recovering roughly 40 to 49 blocks, which is under an hour of wall clock time.
+- Bitcoin Universe support: wallet view, send, receive; Inscribe mint; marketplace feature gated in external execution mode; `sell` unsupported, recorded reason "TAP on Doge has no executable offer workflow on this marketplace surface".
+- Coverage is reported as partial: the pinned reader exposes no Dogecoin mempool feed and publishes no block replacement notifications.
 
-## Community resources
+## Origin
 
-- Explore Dogecoin TAP activity: https://tapalytics.xyz/
-- Discover TAP: https://docs.tap-protocol.com/
+TAP was created by Trac Systems, not by Bitcoin Universe. The Dogecoin protocol rules are published at https://github.com/Trac-Systems/doge-tap-protocol-specs and the Doginals client of record is https://github.com/Trac-Systems/ord-dogecoin. Bitcoin Universe indexing decisions are labelled as such throughout this documentation.
+
+## Related
+
+- [TAP on Bitcoin](https://bitcoinuniverseio.github.io/tap/): the same protocol on Bitcoin mainnet.
+- [Bitcoin Universe documentation portal](https://docs.bitcoinuniverse.io)
+- [Report a vulnerability](https://github.com/bitcoinuniverseio/tap-on-doge/security/advisories/new)

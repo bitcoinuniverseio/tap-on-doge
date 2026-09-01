@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TAP on Doge changelog</title>
+<meta name="description" content="Version history for the TAP on Doge documentation, and the protocol activation heights on Dogecoin mainnet that it describes.">
+<link rel="canonical" href="https://bitcoinuniverseio.github.io/tap-on-doge/changelog.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="TAP on Doge documentation">
+<meta property="og:title" content="TAP on Doge changelog">
+<meta property="og:description" content="Documentation version history and the Dogecoin mainnet protocol activation heights.">
+<meta property="og:url" content="https://bitcoinuniverseio.github.io/tap-on-doge/changelog.html">
+<meta property="og:image" content="https://bitcoinuniverseio.github.io/tap-on-doge/og.svg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#f7f1e4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#17120d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-base="">
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-head">
+  <div class="wrap head-row">
+    <a class="brand" href="index.html"><span class="mark" aria-hidden="true">Ð</span><span>TAP on Doge<small>Bitcoin Universe</small></span></a>
+    <nav class="site-nav" aria-label="Documentation sections">
+      <ul>
+        <li><a href="index.html">Overview</a></li>
+        <li><a href="spec.html">Specification</a></li>
+        <li><a href="guide.html">Guide</a></li>
+        <li><a href="reference.html">Reference</a></li>
+        <li><a href="vectors.html">Test vectors</a></li>
+        <li><a href="validator.html">Validator</a></li>
+        <li><a href="changelog.html" aria-current="page">Changelog</a></li>
+      </ul>
+    </nav>
+    <div class="head-tools">
+      <div class="search">
+        <label class="skip" for="q">Search this documentation</label>
+        <input id="q" type="search" placeholder="Search, or press /" autocomplete="off" spellcheck="false">
+        <div id="search-results" class="search-results" hidden role="region" aria-label="Search results" aria-live="polite"></div>
+      </div>
+      <button id="theme-toggle" class="theme-btn" type="button" hidden>☽</button>
+    </div>
+  </div>
+</header>
+
+<main id="main" class="page">
+<div class="wrap">
+
+<p class="crumb">Version history</p>
+<h1>Changelog</h1>
+<p class="lede">Two histories. What changed in this documentation, and the protocol activation heights on Dogecoin that any indexer must reproduce.</p>
+
+<h2 id="docs">Documentation</h2>
+
+<h3 id="v1-0-0">1.0.0, 2026-09-01</h3>
+<p>Complete rebuild of this repository as protocol documentation. The previous content was a three page promotional site; nothing in it was normative and its links pointed at a GitHub organisation that does not exist.</p>
+<ul>
+  <li>Added a <a href="spec.html">specification</a> with numbered rules covering the Doginals scriptSig envelope, payload encoding, identifiers, tapping, all eleven operations, the state model, activation heights, and invalid conditions.</li>
+  <li>Documented the Dogecoin inscription carrier in detail: push data in the signature script of input 0, a piece count that counts down, 520 byte chunks, and continuation across a chain of transactions. This is the largest single difference from TAP on Bitcoin and the previous content did not mention it.</li>
+  <li>Added a <a href="reference.html">reference</a> covering confirmation, mempool, and reorg semantics as they behave on a one-minute chain, fee and size behaviour without a witness discount, limitations, security considerations, and an implementation checklist.</li>
+  <li>Added <a href="vectors.html">test vectors</a> for the envelope, payloads, addresses, and state transitions, with envelope cases derived from the Doginals parser.</li>
+  <li>Added a client-side <a href="validator.html">payload validator</a> and a confirmation time comparator.</li>
+  <li>Recorded three Bitcoin artefacts in the published Dogecoin specification text: the "valid Bitcoin addresses" wording and <code>bc1</code> lowercasing rule in <code>token-send</code>, the Bitcoin example addresses throughout, and a privilege authority activation height that is a Bitcoin height. See <a href="spec.html#defects">specification section 10</a>.</li>
+  <li>Documented the failure mode where a payload carries <code>p: "tap"</code> with a bare DRC-20 operation name such as <code>mint</code> or <code>transfer</code>. Such an inscription confirms, costs a full fee, and is then indexed by no one. The validator names this case explicitly and the <a href="guide.html#bad-op">guide</a> explains it.</li>
+  <li>Replaced the Bitcoin Universe support claims with the actual contents of the protocol registry and the generated capability snapshot, including the recorded reason that <code>sell</code> is unsupported.</li>
+  <li>Corrected every site link: the previous pages linked to <code>bitcoinuniverse.github.io</code> and <code>github.com/bitcoinuniverse</code>, neither of which is this organisation.</li>
+  <li>Added local search, a dark and light theme with a persisted toggle, a 404 page, <code>sitemap.xml</code>, <code>robots.txt</code>, and an accurate <code>llms.txt</code>.</li>
+  <li>Merged the existing <code>docs.manifest.json</code> rather than replacing it, keeping its accurate field values and adding the specification and upstream declarations.</li>
+</ul>
+
+<h3 id="v0-1-0">0.1.0, before 2026-09-01</h3>
+<p>Initial three page promotional site: a home page, a discover page, and a getting started page. It described TAP on Doge in general terms without operation names, payload rules, envelope details, or indexer semantics, and it did not distinguish Dogecoin from Bitcoin anywhere. Preserved here for history; none of it was normative.</p>
+
+<h2 id="protocol">Protocol activations on Dogecoin mainnet</h2>
+
+<p>These are properties of the chain and the protocol, not of this document. An indexer must reproduce the behaviour that applied below each height.</p>
+
+<div class="scroll-x">
+<table>
+  <caption>Heights at which behaviour changes, oldest first.</caption>
+  <thead><tr><th>Height</th><th>Change</th><th>Effect on an indexer</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><code>4,600,000</code></td>
+      <td>First Dogecoin mainnet height at which <code>ord-dogecoin</code> indexes inscriptions.</td>
+      <td>Content below this height is not an inscription for indexing purposes. This is a Bitcoin Universe configuration choice, and an indexer should publish whichever height it uses.</td>
+    </tr>
+    <tr>
+      <td><code>4,771,259</code></td>
+      <td>Ord wallet 1.0.1 behaviour becomes required. Also the beginning of Dogemap.</td>
+      <td>The protocol follows ord wallet releases conservatively with announced activation heights, so an indexer that simply tracks the newest release is not conforming.</td>
+    </tr>
+    <tr>
+      <td><code>5,487,639</code></td>
+      <td>Ticker lengths widen from "exactly 3, or 5 to 32" to "1 to 32" Unicode symbols.</td>
+      <td>Applying today's rule to historical blocks admits deployments that were invalid at the time, and produces balances that do not reproduce.</td>
+    </tr>
+    <tr>
+      <td><code>5,497,100</code></td>
+      <td>DMT element field numbers and the <code>blk</code> value must be precise. Announced 2024-12-12.</td>
+      <td>Below this height both are read with JavaScript <code>parseInt</code> rules, which stop at the first non-digit character. Both behaviours must be implemented.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="upstream">Upstream sources</h2>
+
+<p>This documentation tracks two upstream sources. When either changes materially, a new document version follows.</p>
+
+<ul>
+  <li><a href="https://github.com/Trac-Systems/doge-tap-protocol-specs">Trac-Systems/doge-tap-protocol-specs</a>: the Dogecoin TAP protocol rules. The upstream document states that it is worked on continuously and that protocol updates are announced in advance with a grace period for indexers.</li>
+  <li><a href="https://github.com/Trac-Systems/ord-dogecoin">Trac-Systems/ord-dogecoin</a>: the Doginals client the specification names as the standard TAP operates against. Bitcoin Universe maintains a production fork of it, from which the envelope and reorg details on this site are drawn.</li>
+</ul>
+
+</div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <section>
+        <h2>This document</h2>
+        <dl class="meta-list">
+          <div><dt>Owning repository</dt><dd><a href="https://github.com/bitcoinuniverseio/tap-on-doge">bitcoinuniverseio/tap-on-doge</a></dd></div>
+          <div><dt>Source path</dt><dd><code>changelog.html</code></dd></div>
+          <div><dt>Document version</dt><dd>1.0.0</dd></div>
+          <div><dt>Lifecycle</dt><dd>Experimental</dd></div>
+          <div><dt>Chain and network</dt><dd>Dogecoin mainnet</dd></div>
+          <div><dt>Last verified</dt><dd><time datetime="2026-09-01">2026-09-01</time></dd></div>
+        </dl>
+      </section>
+      <section>
+        <h2>Documentation</h2>
+        <ul>
+          <li><a href="index.html">Overview</a></li>
+          <li><a href="spec.html">Specification</a></li>
+          <li><a href="guide.html">Guide</a></li>
+          <li><a href="reference.html">Reference</a></li>
+          <li><a href="vectors.html">Test vectors</a></li>
+          <li><a href="validator.html">Validator</a></li>
+          <li><a href="changelog.html">Changelog</a></li>
+        </ul>
+      </section>
+      <section>
+        <h2>Elsewhere</h2>
+        <ul>
+          <li><a href="https://docs.bitcoinuniverse.io">docs.bitcoinuniverse.io</a></li>
+          <li><a href="https://bitcoinuniverseio.github.io/tap/">TAP on Bitcoin</a></li>
+          <li><a href="https://github.com/Trac-Systems/doge-tap-protocol-specs">Dogecoin TAP specification</a></li>
+          <li><a href="https://github.com/Trac-Systems/ord-dogecoin">ord-dogecoin</a></li>
+          <li><a href="https://github.com/bitcoinuniverseio/tap-on-doge/edit/main/changelog.html">Edit this page on GitHub</a></li>
+        </ul>
+      </section>
+    </div>
+    <p class="foot-bottom"><span>TAP on Doge documentation, Bitcoin Universe.</span> <span>TAP is a protocol of Trac Systems.</span> <span>Content licensed under the repository LICENSE.</span></p>
+  </div>
+</footer>
+
+<script src="site.js" defer></script>
+</body>
+</html>

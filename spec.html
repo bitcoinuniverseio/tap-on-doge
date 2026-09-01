@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TAP on Doge specification</title>
+<meta name="description" content="Normative rules for TAP on Dogecoin mainnet: the Doginals scriptSig envelope, payload encoding, identifiers, tapping, every operation, state transitions, activation heights, and invalid conditions.">
+<link rel="canonical" href="https://bitcoinuniverseio.github.io/tap-on-doge/spec.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="TAP on Doge documentation">
+<meta property="og:title" content="TAP on Doge specification">
+<meta property="og:description" content="Numbered normative rules for TAP on Dogecoin mainnet, including the scriptSig inscription envelope that replaces Bitcoin's witness envelope.">
+<meta property="og:url" content="https://bitcoinuniverseio.github.io/tap-on-doge/spec.html">
+<meta property="og:image" content="https://bitcoinuniverseio.github.io/tap-on-doge/og.svg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#f7f1e4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#17120d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-base="">
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-head">
+  <div class="wrap head-row">
+    <a class="brand" href="index.html"><span class="mark" aria-hidden="true">Ð</span><span>TAP on Doge<small>Bitcoin Universe</small></span></a>
+    <nav class="site-nav" aria-label="Documentation sections">
+      <ul>
+        <li><a href="index.html">Overview</a></li>
+        <li><a href="spec.html" aria-current="page">Specification</a></li>
+        <li><a href="guide.html">Guide</a></li>
+        <li><a href="reference.html">Reference</a></li>
+        <li><a href="vectors.html">Test vectors</a></li>
+        <li><a href="validator.html">Validator</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+    </nav>
+    <div class="head-tools">
+      <div class="search">
+        <label class="skip" for="q">Search this documentation</label>
+        <input id="q" type="search" placeholder="Search, or press /" autocomplete="off" spellcheck="false">
+        <div id="search-results" class="search-results" hidden role="region" aria-label="Search results" aria-live="polite"></div>
+      </div>
+      <button id="theme-toggle" class="theme-btn" type="button" hidden>☽</button>
+    </div>
+  </div>
+</header>
+
+<main id="main" class="page">
+<div class="wrap">
+
+<p class="crumb">Normative specification</p>
+<h1>TAP on Doge specification</h1>
+<p class="lede">Rules for reading and writing TAP messages on Dogecoin mainnet. Rules are numbered so they can be cited. "Must" is a requirement; a message that breaks a must is not a TAP message and creates no state.</p>
+
+<ul class="pillrow">
+  <li class="pill">Document <b>v1.0.0</b></li>
+  <li class="pill">Chain <b>Dogecoin mainnet</b></li>
+  <li class="pill">Protocol tag <b><code>tap</code></b></li>
+  <li class="pill">Client of record <b><code>ord-dogecoin</code></b></li>
+</ul>
+
+<nav class="toc" aria-labelledby="toch">
+  <h2 id="toch">On this page</h2>
+  <ol>
+    <li><a href="#scope">Scope and conformance</a></li>
+    <li><a href="#envelope">The Doginals envelope</a></li>
+    <li><a href="#payload">Payload encoding</a></li>
+    <li><a href="#identifiers">Identifiers</a></li>
+    <li><a href="#tapping">Tapping</a></li>
+    <li><a href="#operations">Operations</a></li>
+    <li><a href="#state">State model</a></li>
+    <li><a href="#activation">Activation heights</a></li>
+    <li><a href="#invalid">Invalid conditions</a></li>
+    <li><a href="#defects">Defects in the published text</a></li>
+  </ol>
+</nav>
+
+<h2 id="scope">1. Scope and conformance</h2>
+
+<ul class="rules">
+  <li class="rule"><span class="rid">S-1</span><div class="rtext"><p>This document describes TAP on Dogecoin mainnet only. Dogecoin testnet and regtest are not covered, and no Bitcoin Universe product indexes TAP on them.</p></div></li>
+  <li class="rule"><span class="rid">S-2</span><div class="rtext"><p>The protocol rules originate with the <a href="https://github.com/Trac-Systems/doge-tap-protocol-specs">Dogecoin TAP specification published by Trac Systems</a>. Where this document adds detail, that detail comes from the behaviour of <a href="https://github.com/Trac-Systems/ord-dogecoin">ord-dogecoin</a>, the Doginals client the specification names as the standard TAP operates against.</p></div></li>
+  <li class="rule"><span class="rid">S-3</span><div class="rtext"><p>Where a rule reflects a Bitcoin Universe indexing decision rather than the protocol itself, it is labelled <b>Universe decision</b>. An implementation may differ on those points and still be a conforming TAP indexer.</p></div></li>
+  <li class="rule"><span class="rid">S-4</span><div class="rtext"><p>TAP externally mirrors DRC-20: the same three token operations exist with the same meaning. An implementation that already indexes DRC-20 conforms to the external half of TAP by changing the protocol tag it matches and the operation names it accepts, and by implementing the balance model in section 7.</p></div></li>
+</ul>
+
+<h2 id="envelope">2. The Doginals envelope</h2>
+
+<p>Dogecoin has no Taproot and no segregated witness, so the Bitcoin inscription envelope does not exist here. A Doginals inscription is a sequence of push data in the signature script of the <em>first input</em> of a transaction, and it may continue across several transactions.</p>
+
+<figure>
+  <div class="dg-wrap">
+    <svg viewBox="0 0 720 340" role="img" aria-labelledby="envT envD">
+      <title id="envT">How a Doginals envelope is parsed across a chain of transactions</title>
+      <desc id="envD">Transaction one's first input carries push data: the literal string ord, the piece count n, the content type, then the countdown value n minus one followed by a chunk, repeating. When the pushes run out before the countdown reaches zero, parsing continues into transaction two's first input, which must begin with the next countdown value followed by its chunk. When the countdown reaches zero the inscription is complete. If the chain of transactions ends first, the result is partial and nothing is indexed.</desc>
+
+      <rect x="10" y="16" width="330" height="150" rx="16" class="svg-fill-2 svg-line" stroke-width="1.5"/>
+      <text x="28" y="42" class="svg-accent" font-size="12" font-weight="800">TRANSACTION 1, INPUT 0 scriptSig</text>
+      <rect x="28" y="54" width="46" height="26" rx="8" class="svg-accent"/>
+      <text x="51" y="72" text-anchor="middle" font-size="11" font-weight="700" fill="var(--accent-ink)">"ord"</text>
+      <rect x="80" y="54" width="40" height="26" rx="8" class="svg-fill svg-line" stroke-width="1.2"/>
+      <text x="100" y="72" text-anchor="middle" font-size="11" class="svg-ink">n = 3</text>
+      <rect x="126" y="54" width="100" height="26" rx="8" class="svg-fill svg-line" stroke-width="1.2"/>
+      <text x="176" y="72" text-anchor="middle" font-size="10" class="svg-ink">content type</text>
+      <rect x="28" y="88" width="34" height="26" rx="8" class="svg-fill svg-line" stroke-width="1.2"/>
+      <text x="45" y="106" text-anchor="middle" font-size="11" class="svg-ink">2</text>
+      <rect x="68" y="88" width="90" height="26" rx="8" class="svg-fill svg-line" stroke-width="1.2"/>
+      <text x="113" y="106" text-anchor="middle" font-size="10" class="svg-ink">chunk ≤ 520 B</text>
+      <rect x="164" y="88" width="34" height="26" rx="8" class="svg-fill svg-line" stroke-width="1.2"/>
+      <text x="181" y="106" text-anchor="middle" font-size="11" class="svg-ink">1</text>
+      <rect x="204" y="88" width="90" height="26" rx="8" class="svg-fill svg-line" stroke-width="1.2"/>
+      <text x="249" y="106" text-anchor="middle" font-size="10" class="svg-ink">chunk ≤ 520 B</text>
+      <text x="28" y="140" class="svg-muted" font-size="11">pushes exhausted, countdown still at 0 pending</text>
+      <text x="28" y="156" class="svg-muted" font-size="11">so parsing continues into the next transaction</text>
+
+      <path d="M340 92 L378 92" class="svg-accent-s svg-none" stroke-width="2" marker-end="url(#eArrow)"/>
+      <defs><marker id="eArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" class="svg-accent"/></marker></defs>
+
+      <rect x="380" y="16" width="330" height="150" rx="16" class="svg-fill-2 svg-line" stroke-width="1.5"/>
+      <text x="398" y="42" class="svg-accent" font-size="12" font-weight="800">TRANSACTION 2, INPUT 0 scriptSig</text>
+      <rect x="398" y="54" width="34" height="26" rx="8" class="svg-fill svg-line" stroke-width="1.2"/>
+      <text x="415" y="72" text-anchor="middle" font-size="11" class="svg-ink">0</text>
+      <rect x="438" y="54" width="90" height="26" rx="8" class="svg-fill svg-line" stroke-width="1.2"/>
+      <text x="483" y="72" text-anchor="middle" font-size="10" class="svg-ink">chunk ≤ 520 B</text>
+      <text x="398" y="102" class="svg-muted" font-size="11">first push must be exactly the next countdown value</text>
+      <text x="398" y="120" class="svg-muted" font-size="11">a mismatch aborts the parse entirely</text>
+      <rect x="398" y="132" width="180" height="24" rx="8" class="svg-accent"/>
+      <text x="488" y="149" text-anchor="middle" font-size="11" font-weight="700" fill="var(--accent-ink)">countdown 0: COMPLETE</text>
+
+      <rect x="10" y="186" width="700" height="66" rx="16" class="svg-fill svg-line" stroke-width="1.5"/>
+      <text x="28" y="212" class="svg-ink" font-size="12" font-weight="700">If the chain of transactions ends before the countdown reaches zero</text>
+      <text x="28" y="234" class="svg-muted" font-size="12">the result is PARTIAL. No inscription exists, no TAP message exists, and every fee already paid is spent.</text>
+
+      <rect x="10" y="266" width="700" height="62" rx="16" class="svg-fill svg-line" stroke-width="1.5"/>
+      <text x="28" y="292" class="svg-ink" font-size="12" font-weight="700">Only input 0 is examined</text>
+      <text x="28" y="314" class="svg-muted" font-size="12">An envelope placed in input 1 or later is not an inscription, no matter how well formed it is.</text>
+    </svg>
+  </div>
+  <figcaption>The Dogecoin envelope is a countdown, not a delimiter pair. This is why an interrupted reveal chain produces nothing rather than a truncated inscription.</figcaption>
+</figure>
+
+<ul class="rules">
+  <li class="rule"><span class="rid">E-1</span><div class="rtext"><p>An inscription is read from the signature script of <b>input 0</b> only. A well formed envelope in any later input must be ignored.</p></div></li>
+  <li class="rule"><span class="rid">E-2</span><div class="rtext"><p>The signature script must decode entirely as push operations. The recognised forms are the zero push (opcode <code>0x00</code>), the small integer pushes <code>OP_1</code> through <code>OP_16</code> (<code>0x51</code> to <code>0x60</code>, yielding values 1 to 16), direct pushes of 1 to 75 bytes, and <code>OP_PUSHDATA1</code>, <code>OP_PUSHDATA2</code>, and <code>OP_PUSHDATA4</code>. Any other opcode ends the decode and the transaction carries no inscription.</p></div></li>
+  <li class="rule"><span class="rid">E-3</span><div class="rtext"><p>The script must yield at least three push values. The first must be exactly the three bytes <code>ord</code>. Anything else is not an inscription.</p></div></li>
+  <li class="rule"><span class="rid">E-4</span><div class="rtext"><p>The second push is the piece count. It is decoded as an unsigned little-endian integer of at most 8 bytes; an empty push decodes to 0. A piece count of 0 is invalid and the transaction carries no inscription.</p></div></li>
+  <li class="rule"><span class="rid">E-5</span><div class="rtext"><p>The third push is the content type, taken as raw bytes. For a TAP message this is a text content type such as <code>text/plain;charset=utf-8</code>.</p></div></li>
+  <li class="rule"><span class="rid">E-6</span><div class="rtext"><p>The body follows as alternating pairs of a countdown value and a chunk. Before each pair the countdown value must equal the current piece count minus one, exactly. It is decoded by the same integer rule as E-4. A mismatch stops the body accumulation at that point.</p></div></li>
+  <li class="rule"><span class="rid">E-7</span><div class="rtext"><p>Body chunks are at most 520 bytes each. The body is the concatenation of the chunks in the order encountered.</p></div></li>
+  <li class="rule"><span class="rid">E-8</span><div class="rtext"><p>When a transaction's pushes are exhausted and the count has not reached zero, parsing continues into the next transaction of the reveal chain. The first push of that transaction's input 0 must be the next countdown value; if it is not, the whole inscription is invalid, not merely truncated.</p></div></li>
+  <li class="rule"><span class="rid">E-9</span><div class="rtext"><p>If the chain of transactions ends while the count is still above zero, the inscription is <b>partial</b>. A partial inscription creates no inscription and therefore no TAP message. There is no recovery: the remaining pieces cannot be supplied later.</p></div></li>
+  <li class="rule"><span class="rid">E-10</span><div class="rtext"><p>Once the count reaches zero, any remaining pushes are read pairwise as fields. A field key must be exactly one byte; a longer key ends field parsing. Key <code>11</code> is the delegate field, whose value is an inscription id in binary form. Fields are not part of a TAP payload and TAP indexers ignore them.</p></div></li>
+  <li class="rule"><span class="rid">E-11</span><div class="rtext"><p><b>Universe decision.</b> Dogecoin mainnet inscriptions are indexed from block height <b>4,600,000</b>. Content before that height is not indexed as an inscription.</p></div></li>
+  <li class="rule"><span class="rid">E-12</span><div class="rtext"><p><b>Universe decision.</b> <code>ord-dogecoin</code> configures no inscription content size limit for Dogecoin mainnet. The practical ceiling is set by transaction relay policy and by what you are willing to pay, not by the indexer.</p></div></li>
+</ul>
+
+<div class="note warn">
+  <b class="lbl">The Bitcoin envelope is not accepted here</b>
+  <p>A Bitcoin ord envelope opens with <code>OP_FALSE OP_IF</code> and closes with <code>OP_ENDIF</code>. <code>OP_IF</code> is not a push opcode, so under E-2 a script containing it decodes to nothing at all. Tooling ported from Bitcoin without changing the carrier produces transactions that confirm, cost full Dogecoin fees, and inscribe nothing.</p>
+</div>
+
+<h2 id="payload">3. Payload encoding</h2>
+
+<ul class="rules">
+  <li class="rule"><span class="rid">P-1</span><div class="rtext"><p>A TAP message is the inscription body interpreted as UTF-8 text containing exactly one JSON object. A JSON array, a bare JSON value, or trailing content after the object is not a TAP message.</p></div></li>
+  <li class="rule"><span class="rid">P-2</span><div class="rtext"><p>The object must carry <code>"p"</code> with the exact lowercase string value <code>tap</code>. Surrounding whitespace is not trimmed for you; <code>" tap"</code> is not <code>"tap"</code>.</p></div></li>
+  <li class="rule"><span class="rid">P-3</span><div class="rtext"><p>The object must carry <code>"op"</code> with one of the eleven operation names in section 6. There is no bare <code>mint</code>, <code>transfer</code>, <code>deploy</code>, or <code>send</code>: every token operation name is prefixed.</p></div></li>
+  <li class="rule"><span class="rid">P-4</span><div class="rtext"><p>Fields an operation does not define are ignored. An indexer must not fail a message because it carries an extra field, and must not infer meaning from one.</p></div></li>
+  <li class="rule"><span class="rid">P-5</span><div class="rtext"><p>Amounts (<code>amt</code>, <code>max</code>, <code>lim</code>) are decimal strings: digits, with at most one <code>.</code>, no sign, no exponent, no separators, no unit. The published privileged mint example uses a JSON number for <code>amt</code>; a string is the form every other example uses and the only form that carries a large supply without loss.</p></div></li>
+  <li class="rule"><span class="rid">P-6</span><div class="rtext"><p>Tickers are compared case-insensitively. A leading <code>-</code> marks a ticker reached through a cursed inscription and is a distinct ticker from the same name without it.</p></div></li>
+  <li class="rule"><span class="rid">P-7</span><div class="rtext"><p>Ticker length is measured in Unicode symbols, not bytes. Until block 5,487,639 a ticker must be exactly 3 symbols or between 5 and 32 symbols. From block 5,487,639 onward, 1 to 32 symbols are allowed. This is a widening of DRC-20's fixed 4 letter tickers.</p></div></li>
+  <li class="rule"><span class="rid">P-8</span><div class="rtext"><p><b>Universe decision.</b> A deployment's declared decimal scale is accepted in the range 0 through 18 inclusive. Decimal-form amounts are converted to atomic integers using that scale without floating-point arithmetic. Activity for a ticker whose deployment has not been observed is held rather than scaled with a guessed scale.</p></div></li>
+  <li class="rule"><span class="rid">P-9</span><div class="rtext"><p>Every address in a payload must be a valid Dogecoin mainnet address in base58check form. See section 4.</p></div></li>
+</ul>
+
+<h2 id="identifiers">4. Identifiers</h2>
+
+<ul class="rules">
+  <li class="rule"><span class="rid">I-1</span><div class="rtext"><p>An <b>inscription id</b> is the 64 character lowercase hex transaction id of the reveal transaction followed by <code>i</code> and the index, for example <code>825e287b…a3dci0</code>. Fields that reference another inscription (<code>trade</code>, <code>elem</code>, <code>dep</code>, <code>prv</code>, <code>cancel</code>, <code>redeem.auth</code>) take the inscription id, never the inscription number.</p></div></li>
+  <li class="rule"><span class="rid">I-2</span><div class="rtext"><p>A <b>ticker</b> identifies a deployment. Tickers are unique across the protocol; the first valid <code>token-deploy</code> for a ticker owns it and later deployments of the same ticker are invalid.</p></div></li>
+  <li class="rule"><span class="rid">I-3</span><div class="rtext"><p>A Dogecoin mainnet <b>address</b> is base58check encoded and decodes to 25 bytes: a one byte version, a 20 byte hash, and a 4 byte double-SHA256 checksum. Version <code>0x1e</code> is pay-to-public-key-hash and renders with a leading <code>D</code>. Version <code>0x16</code> is pay-to-script-hash and renders with a leading <code>9</code> or <code>A</code>.</p></div></li>
+  <li class="rule"><span class="rid">I-4</span><div class="rtext"><p>Dogecoin has no bech32 or bech32m address form and no separate ordinals address role. One payment address receives both DOGE and inscriptions. The Bitcoin lowercasing rule for <code>bc1</code> addresses has no counterpart here; Dogecoin base58 addresses are case-sensitive and must be used exactly as written.</p></div></li>
+  <li class="rule"><span class="rid">I-5</span><div class="rtext"><p><b>Universe decision.</b> The Bitcoin Universe Dogecoin marketplace surface accepts only version <code>0x1e</code> pay-to-public-key-hash addresses for its actions, and rejects a <code>0x16</code> pay-to-script-hash address as the wrong form. The protocol itself does not impose that restriction.</p></div></li>
+</ul>
+
+<h2 id="tapping">5. Tapping</h2>
+
+<p>Tapping is TAP's approval step and the source of its name. An inscription is tapped by sending it, after it confirms, from the address that holds it back to that same address.</p>
+
+<figure>
+  <div class="dg-wrap">
+    <svg viewBox="0 0 720 200" role="img" aria-labelledby="tapT tapD">
+      <title id="tapT">The tapping cycle</title>
+      <desc id="tapD">An inscription is created in a reveal transaction and confirms. It then sits inert with no protocol effect. A second transaction sends it from the owning address back to the same address. Once that transaction confirms, the operation takes effect. On Dogecoin both confirmations take about one minute each.</desc>
+
+      <rect x="10" y="40" width="150" height="80" rx="16" class="svg-fill-2 svg-line" stroke-width="1.5"/>
+      <text x="85" y="70" text-anchor="middle" class="svg-ink" font-size="12" font-weight="700">Inscribe</text>
+      <text x="85" y="90" text-anchor="middle" class="svg-muted" font-size="11">reveal confirms</text>
+      <text x="85" y="107" text-anchor="middle" class="svg-accent" font-size="11" font-weight="700">≈ 1 min</text>
+
+      <path d="M162 80 L200 80" class="svg-accent-s svg-none" stroke-width="2" marker-end="url(#tArrow)"/>
+      <defs><marker id="tArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" class="svg-accent"/></marker></defs>
+
+      <rect x="204" y="40" width="170" height="80" rx="16" class="svg-fill svg-line" stroke-width="1.5"/>
+      <text x="289" y="70" text-anchor="middle" class="svg-ink" font-size="12" font-weight="700">Inert</text>
+      <text x="289" y="90" text-anchor="middle" class="svg-muted" font-size="11">no protocol effect yet</text>
+      <text x="289" y="107" text-anchor="middle" class="svg-muted" font-size="11">balances unchanged</text>
+
+      <path d="M376 80 L414 80" class="svg-accent-s svg-none" stroke-width="2" marker-end="url(#tArrow)"/>
+
+      <rect x="418" y="40" width="150" height="80" rx="16" class="svg-fill-2 svg-line" stroke-width="1.5"/>
+      <text x="493" y="66" text-anchor="middle" class="svg-ink" font-size="12" font-weight="700">Tap</text>
+      <text x="493" y="85" text-anchor="middle" class="svg-muted" font-size="11">send to self,</text>
+      <text x="493" y="99" text-anchor="middle" class="svg-muted" font-size="11">same address</text>
+      <text x="493" y="114" text-anchor="middle" class="svg-accent" font-size="11" font-weight="700">≈ 1 min</text>
+
+      <path d="M570 80 L608 80" class="svg-accent-s svg-none" stroke-width="2" marker-end="url(#tArrow)"/>
+
+      <rect x="612" y="40" width="98" height="80" rx="16" class="svg-accent"/>
+      <text x="661" y="76" text-anchor="middle" font-size="12" font-weight="700" fill="var(--accent-ink)">Effect</text>
+      <text x="661" y="94" text-anchor="middle" font-size="11" fill="var(--accent-ink)">applied</text>
+
+      <text x="10" y="160" class="svg-muted" font-size="12">Two confirmations, about two minutes on Dogecoin. The same cycle is about twenty minutes on Bitcoin.</text>
+      <text x="10" y="182" class="svg-muted" font-size="12">Sending the inscription to any other address is a transfer, not a tap, and the operation never takes effect.</text>
+    </svg>
+  </div>
+  <figcaption>Tapping is a second on-chain transaction. Every internal operation needs it; the three external token operations do not.</figcaption>
+</figure>
+
+<ul class="rules">
+  <li class="rule"><span class="rid">T-1</span><div class="rtext"><p>A tap is a transaction that spends the inscription's output and pays it to the same address that held it. Any other destination is an ordinary transfer of the inscription and does not tap it.</p></div></li>
+  <li class="rule"><span class="rid">T-2</span><div class="rtext"><p>The operations requiring a tap are <code>token-send</code>, <code>block-transferables</code>, <code>unblock-transferables</code>, <code>token-trade</code> in all three of its forms, and the creation and cancellation forms of <code>token-auth</code> and <code>privilege-auth</code>.</p></div></li>
+  <li class="rule"><span class="rid">T-3</span><div class="rtext"><p><code>token-deploy</code>, <code>token-mint</code>, <code>token-transfer</code>, <code>dmt-deploy</code>, and <code>dmt-mint</code> take effect on the inscription's own confirmation and are never tapped.</p></div></li>
+  <li class="rule"><span class="rid">T-4</span><div class="rtext"><p>A signed <code>token-auth</code> redeem is authorised by its signature rather than by ownership, so anyone may inscribe it and no tap is required.</p></div></li>
+  <li class="rule"><span class="rid">T-5</span><div class="rtext"><p>Conditions are evaluated at tapping time, not at inscribing time. A <code>token-send</code> whose sender had the balance when inscribed but not when tapped has its unfunded items skipped.</p></div></li>
+</ul>
+
+<h2 id="operations">6. Operations</h2>
+
+<h3 id="op-deploy">6.1 <code>token-deploy</code></h3>
+<pre><code>{
+  "p": "tap",
+  "op": "token-deploy",
+  "tick": "tap",
+  "max": "21000000",
+  "lim": "1000"
+}</code></pre>
+<ul class="rules">
+  <li class="rule"><span class="rid">D-1</span><div class="rtext"><p><code>tick</code> and <code>max</code> are required. <code>lim</code> is optional; without it the whole maximum supply may be minted in one mint.</p></div></li>
+  <li class="rule"><span class="rid">D-2</span><div class="rtext"><p>A deployment for a ticker that already has a valid deployment is invalid and creates nothing.</p></div></li>
+  <li class="rule"><span class="rid">D-3</span><div class="rtext"><p>An optional <code>prv</code> holds the inscription id of an active privilege authority. Only that authority may then say which address is allowed to mint. The authority cannot override <code>max</code>, <code>lim</code>, or the ticker.</p></div></li>
+  <li class="rule"><span class="rid">D-4</span><div class="rtext"><p>If <code>prv</code> names an inscription that is not a valid, uncancelled privilege authority at the deploying height, the deployment fails.</p></div></li>
+</ul>
+
+<h3 id="op-mint">6.2 <code>token-mint</code></h3>
+<pre><code>{
+  "p": "tap",
+  "op": "token-mint",
+  "tick": "tap",
+  "amt": "1000"
+}</code></pre>
+<ul class="rules">
+  <li class="rule"><span class="rid">M-1</span><div class="rtext"><p><code>tick</code> and <code>amt</code> are required. The ticker must already be deployed.</p></div></li>
+  <li class="rule"><span class="rid">M-2</span><div class="rtext"><p><code>amt</code> must not exceed the deployment's <code>lim</code>, and the mint must not take total minted supply past <code>max</code>. Behaviour when a mint would cross <code>max</code> follows the deployment's remaining supply: the excess is not minted.</p></div></li>
+  <li class="rule"><span class="rid">M-3</span><div class="rtext"><p>Minted amounts credit the address holding the mint inscription's output.</p></div></li>
+  <li class="rule"><span class="rid">M-4</span><div class="rtext"><p>If the deployment carries <code>prv</code>, the mint must carry a <code>prv</code> object holding the authority's <code>sig</code>, <code>hash</code>, <code>address</code>, and <code>salt</code>. The address in that object is the only address permitted to mint, and it must be a Dogecoin mainnet address. A mint from any other address fails and the authority must reissue with a fresh salt, because hashes are unique across the whole protocol state.</p></div></li>
+</ul>
+
+<h3 id="op-transfer">6.3 <code>token-transfer</code></h3>
+<pre><code>{
+  "p": "tap",
+  "op": "token-transfer",
+  "tick": "tap",
+  "amt": "100"
+}</code></pre>
+<ul class="rules">
+  <li class="rule"><span class="rid">X-1</span><div class="rtext"><p><code>tick</code> and <code>amt</code> are required. There is no recipient field. This operation parks an amount; the recipient is chosen later, by sending the resulting inscription in an ordinary Dogecoin transaction.</p></div></li>
+  <li class="rule"><span class="rid">X-2</span><div class="rtext"><p>On confirmation, <code>amt</code> moves from the holder's available balance into transferable balance. The inscription is now a live transfer inscription.</p></div></li>
+  <li class="rule"><span class="rid">X-3</span><div class="rtext"><p>When the transfer inscription is sent to another address, the amount leaves the sender's transferable balance and credits the recipient's available balance. The inscription is then consumed and cannot move tokens again.</p></div></li>
+  <li class="rule"><span class="rid">X-4</span><div class="rtext"><p>A <code>token-transfer</code> for more than the holder's available balance is invalid and parks nothing.</p></div></li>
+  <li class="rule"><span class="rid">X-5</span><div class="rtext"><p>If the receiving address has tapped <code>block-transferables</code>, an incoming inscribe transfer is skipped and credits nothing. Transfer inscriptions that were already live stay usable.</p></div></li>
+</ul>
+
+<h3 id="op-send">6.4 <code>token-send</code></h3>
+<pre><code>{
+  "p": "tap",
+  "op": "token-send",
+  "items": [
+    { "tick": "tap",  "amt": "10000", "address": "DHZqJo3DUyhQsrdR3Kcs8xvfaMzPkzE5gP" },
+    { "tick": "-tap", "amt": "500",   "address": "D5djC8ayTw5dixq1bKGHABLE8KPN9MrF4C" }
+  ]
+}</code></pre>
+<ul class="rules">
+  <li class="rule"><span class="rid">N-1</span><div class="rtext"><p><code>items</code> is a non-empty array. Each item requires <code>tick</code>, <code>amt</code>, and <code>address</code>. There is no limit on the number of items, and tickers may be mixed freely.</p></div></li>
+  <li class="rule"><span class="rid">N-2</span><div class="rtext"><p>The inscription must be inscribed to the sender's own address and then tapped. Only on tapping do the sends execute.</p></div></li>
+  <li class="rule"><span class="rid">N-3</span><div class="rtext"><p><code>token-send</code> is atomic on syntax: if any item is syntactically invalid at inscribing time, the whole inscription is invalid.</p></div></li>
+  <li class="rule"><span class="rid">N-4</span><div class="rtext"><p><code>token-send</code> is not atomic on semantics: at tapping time each item is evaluated individually, and items that fail (insufficient funds, an invalid amount, a wrong data type) are skipped while the rest execute.</p></div></li>
+  <li class="rule"><span class="rid">N-5</span><div class="rtext"><p>Each item spends <b>available</b> balance only, which is total balance minus the amount parked in live transfer inscriptions.</p></div></li>
+  <li class="rule"><span class="rid">N-6</span><div class="rtext"><p>Recipient addresses must be trimmed and must be valid Dogecoin mainnet addresses. See the note in section 10 about the address wording inherited by the published specification text.</p></div></li>
+</ul>
+
+<h3 id="op-block">6.5 <code>block-transferables</code> and <code>unblock-transferables</code></h3>
+<pre><code>{ "p": "tap", "op": "block-transferables" }</code></pre>
+<ul class="rules">
+  <li class="rule"><span class="rid">B-1</span><div class="rtext"><p>Both operations carry no fields beyond <code>p</code> and <code>op</code>, and both must be inscribed to the acting address and tapped.</p></div></li>
+  <li class="rule"><span class="rid">B-2</span><div class="rtext"><p>While blocked, incoming inscribe transfers to that address are skipped and no subsequent <code>token-transfer</code> to it succeeds. Transfer inscriptions already live remain valid and usable.</p></div></li>
+  <li class="rule"><span class="rid">B-3</span><div class="rtext"><p>This exists to stop grief attacks against addresses that operate token authorities, where an authority redeems tokens out of its own account and an unexpected inbound transfer would disturb its accounting.</p></div></li>
+</ul>
+
+<h3 id="op-trade">6.6 <code>token-trade</code></h3>
+<p>Three forms share the operation name and are distinguished by their fields.</p>
+<h4>Create, as seller</h4>
+<pre><code>{
+  "p": "tap", "op": "token-trade", "side": "0",
+  "tick": "tap", "amt": "1",
+  "accept": [ { "tick": "buidl", "amt": "0.1" } ],
+  "valid": "5900000"
+}</code></pre>
+<ul class="rules">
+  <li class="rule"><span class="rid">R-1</span><div class="rtext"><p>All of <code>side</code>, <code>tick</code>, <code>amt</code>, <code>accept</code>, and <code>valid</code> are required. <code>side</code> is the string <code>"0"</code> for the seller.</p></div></li>
+  <li class="rule"><span class="rid">R-2</span><div class="rtext"><p><code>valid</code> is a Dogecoin block height and must be in the future, inclusive, when the buyer taps. A trade is invalid once the current block exceeds it. Because Dogecoin blocks arrive about once a minute, a window expressed in blocks is roughly one tenth the wall clock duration the same number would give on Bitcoin.</p></div></li>
+  <li class="rule"><span class="rid">R-3</span><div class="rtext"><p>Tickers in <code>accept</code> must be unique. Where a ticker repeats, only the first entry is indexed.</p></div></li>
+  <li class="rule"><span class="rid">R-4</span><div class="rtext"><p>Every accepted ticker must be deployed at the moment the trade is filled, and the seller must own the offered amount in available balance at that moment.</p></div></li>
+  <li class="rule"><span class="rid">R-5</span><div class="rtext"><p>The inscription must be tapped by the seller to open the trade.</p></div></li>
+</ul>
+<h4>Cancel, as seller</h4>
+<pre><code>{ "p": "tap", "op": "token-trade", "side": "0", "trade": "&lt;inscription id&gt;" }</code></pre>
+<ul class="rules">
+  <li class="rule"><span class="rid">R-6</span><div class="rtext"><p><code>trade</code> holds the inscription id of the trade, not its number. Cancellation succeeds only if the cancelling address owns that trade inscription, and must be tapped. Once cancelled, the trade can never be filled.</p></div></li>
+</ul>
+<h4>Fill, as buyer</h4>
+<pre><code>{
+  "p": "tap", "op": "token-trade", "side": "1",
+  "trade": "&lt;inscription id&gt;",
+  "tick": "buidl", "amt": "0.1",
+  "fee_rcv": "&lt;Dogecoin address&gt;"
+}</code></pre>
+<ul class="rules">
+  <li class="rule"><span class="rid">R-7</span><div class="rtext"><p>All fields except <code>fee_rcv</code> are required. <code>side</code> is the string <code>"1"</code>.</p></div></li>
+  <li class="rule"><span class="rid">R-8</span><div class="rtext"><p><code>tick</code> and <code>amt</code> must match exactly one entry of the referenced trade's <code>accept</code> array. The buyer fills exactly one accepted token, never all of them.</p></div></li>
+  <li class="rule"><span class="rid">R-9</span><div class="rtext"><p>When <code>fee_rcv</code> is present it must be a valid Dogecoin address, and a fixed 0.3% fee in the purchased token is charged to the buyer on top of the purchase amount. The fee applies only where the amount and its decimal scale allow 0.3% to be expressed; otherwise the fee is zero.</p></div></li>
+  <li class="rule"><span class="rid">R-10</span><div class="rtext"><p>The fill must be tapped by the buyer. A fill tapped after <code>valid</code> has passed fails.</p></div></li>
+  <li class="rule"><span class="rid">R-11</span><div class="rtext"><p>A fill succeeds only if every condition holds and all balances credit correctly: the accepted token and its exact amount to the seller, the offered token to the buyer, and the fee, if any, to the fee receiver.</p></div></li>
+</ul>
+
+<h3 id="op-auth">6.7 <code>token-auth</code></h3>
+<p>A token authority is a third party that signs redeem messages. Anyone may inscribe a signed redeem, and the authorised tokens move. The protocol never learns why: the authority's logic stays off chain. Signatures are secp256k1.</p>
+<ul class="rules">
+  <li class="rule"><span class="rid">A-1</span><div class="rtext"><p>The creation form carries <code>sig</code> (with <code>v</code>, <code>r</code>, <code>s</code>), <code>hash</code>, <code>salt</code>, and <code>auth</code>, an array of deployed tickers. An empty <code>auth</code> array authorises every token the authority's account holds.</p></div></li>
+  <li class="rule"><span class="rid">A-2</span><div class="rtext"><p>The public key is recovered from <code>hash</code>. To verify, the <code>auth</code> array is JSON-stringified and hashed together with <code>salt</code> as <code>sha256(auth + salt)</code>. The <code>salt</code> exists so the resulting hash cannot collide.</p></div></li>
+  <li class="rule"><span class="rid">A-3</span><div class="rtext"><p><code>hash</code> must never have been used before anywhere in the protocol state. A reused hash invalidates the message.</p></div></li>
+  <li class="rule"><span class="rid">A-4</span><div class="rtext"><p>Creation is atomic: if <code>auth</code> is non-empty, every ticker in it must be deployed at inscribing time. The authority address need not hold the tokens at creation, though it must at redeem time.</p></div></li>
+  <li class="rule"><span class="rid">A-5</span><div class="rtext"><p>A creation must be tapped by the authority address.</p></div></li>
+  <li class="rule"><span class="rid">A-6</span><div class="rtext"><p>The redeem form carries <code>sig</code>, <code>hash</code>, <code>salt</code>, and a <code>redeem</code> object holding <code>items</code> (each <code>tick</code>, <code>amt</code>, <code>address</code>), <code>auth</code> (the authority's inscription id), and <code>data</code>, which must be present and may be empty.</p></div></li>
+  <li class="rule"><span class="rid">A-7</span><div class="rtext"><p>A redeem verifies when both public keys match, both hashes are valid, the referenced authority is not cancelled, and every ticker in <code>items</code> appears in the original <code>auth</code> list. The tokens then move exactly as <code>token-send</code> moves them, including the available-balance rule. No tap is required.</p></div></li>
+  <li class="rule"><span class="rid">A-8</span><div class="rtext"><p>The cancellation form carries <code>cancel</code>, the inscription id of an existing uncancelled authority, and must be tapped by the authority address. After cancellation no redeem against that authority ever executes again.</p></div></li>
+</ul>
+
+<h3 id="op-privilege">6.8 <code>privilege-auth</code></h3>
+<p>A privilege authority gates who may mint a deployment, and records signed statements that a given file hash belongs to a given address. It is the mechanism behind whitelists, launchpads, and provenance for off-chain content.</p>
+<ul class="rules">
+  <li class="rule"><span class="rid">V-1</span><div class="rtext"><p>The creation form carries <code>sig</code>, <code>hash</code>, <code>salt</code>, and an <code>auth</code> object, and must be tapped.</p></div></li>
+  <li class="rule"><span class="rid">V-2</span><div class="rtext"><p>A deployment references an authority through <code>prv</code>. A mint against such a deployment carries a <code>prv</code> object with the authority's signature and the permitted minting address, as in M-4.</p></div></li>
+  <li class="rule"><span class="rid">V-3</span><div class="rtext"><p>The hashed verification form carries <code>prv</code> (the authority's inscription id), <code>address</code>, <code>verify</code> (a sha256 digest of file contents), <code>col</code> (a collection name, at most 512 Unicode symbols, present but possibly empty), and <code>seq</code>.</p></div></li>
+  <li class="rule"><span class="rid">V-4</span><div class="rtext"><p><code>seq</code> must be a JSON unsigned integer no larger than 9007199254740991. Passing <code>seq</code> as a string fails the verification. This is the one place in TAP where a string form is explicitly rejected, and it is the opposite of the convention for amounts.</p></div></li>
+  <li class="rule"><span class="rid">V-5</span><div class="rtext"><p>Different authorities may make conflicting statements about the same hash. There is no arbitration in the protocol: a project must publish its authority inscription id off chain, and that published id is the source of truth for its collection.</p></div></li>
+  <li class="rule"><span class="rid">V-6</span><div class="rtext"><p>The cancellation form carries <code>cancel</code> and must be tapped. After it, no further mints or verifications managed by that authority take effect, which is how a collection is finalised.</p></div></li>
+  <li class="rule"><span class="rid">V-7</span><div class="rtext"><p>Salts should be deterministic, such as an inscription id, rather than random, when the authority needs to be able to reindex its own history.</p></div></li>
+</ul>
+
+<h3 id="op-dmt">6.9 <code>dmt-deploy</code> and <code>dmt-mint</code></h3>
+<pre><code>{
+  "p": "tap",
+  "op": "dmt-mint",
+  "tick": "dogenat",
+  "blk": 5000000,
+  "dep": "825e287bb7dd163ed633110e31bc6abb6c80815ca68b7dd3cc71d729ecaaa3dci0"
+}</code></pre>
+<ul class="rules">
+  <li class="rule"><span class="rid">G-1</span><div class="rtext"><p>Digital Matter Theory tokens derive their mintable amounts from block data rather than from a free choice of amount. TAP on Dogecoin supports element fields <b>4</b> (block height), <b>10</b> (nonce), and <b>11</b> (bits).</p></div></li>
+  <li class="rule"><span class="rid">G-2</span><div class="rtext"><p><code>dmt-deploy</code> requires <code>elem</code> (the element inscription id), <code>tick</code>, and <code>dt</code>. It may carry <code>prv</code>.</p></div></li>
+  <li class="rule"><span class="rid">G-3</span><div class="rtext"><p><code>dmt-mint</code> requires <code>tick</code>, <code>blk</code> (the block height being minted), and <code>dep</code> (the deployment inscription id). Each block height may be minted once per deployment.</p></div></li>
+  <li class="rule"><span class="rid">G-4</span><div class="rtext"><p>Until Dogecoin block 5,497,099, element field numbers and the <code>blk</code> value were interpreted with JavaScript <code>parseInt</code> rules, which stop at the first non-digit. From block <b>5,497,100</b> onward both must be precise. Write <code>blk</code> as a JSON integer.</p></div></li>
+  <li class="rule"><span class="rid">G-5</span><div class="rtext"><p>TAP indexers on Dogecoin must also index <b>Dogemap</b> exactly as the bitmap specification defines, substituting the name <code>dogemap</code> throughout.</p></div></li>
+</ul>
+
+<h2 id="state">7. State model</h2>
+
+<p>Every address holds three quantities per ticker. Two are stored and the third is derived.</p>
+
+<figure>
+  <div class="dg-wrap">
+    <svg viewBox="0 0 720 240" role="img" aria-labelledby="balT balD">
+      <title id="balT">The three balance quantities and the operations that move between them</title>
+      <desc id="balD">Total balance is split into available balance and transferable balance. A token-mint credits available balance. A token-transfer moves an amount from available into transferable and creates a live transfer inscription. Sending that inscription removes the amount from the sender's transferable balance and credits the recipient's available balance. A token-send moves directly out of available balance without creating a transfer inscription.</desc>
+
+      <rect x="10" y="16" width="700" height="46" rx="14" class="svg-fill-2 svg-line" stroke-width="1.5"/>
+      <text x="26" y="45" class="svg-ink" font-size="13" font-weight="700">TOTAL BALANCE = AVAILABLE + TRANSFERABLE</text>
+
+      <rect x="10" y="80" width="340" height="86" rx="14" class="svg-fill svg-line" stroke-width="1.5"/>
+      <text x="30" y="106" class="svg-accent" font-size="12" font-weight="800">AVAILABLE</text>
+      <text x="30" y="128" class="svg-ink" font-size="12">Spendable by inscribing a new transfer,</text>
+      <text x="30" y="146" class="svg-ink" font-size="12">or by a tapped token-send or redeem.</text>
+
+      <rect x="370" y="80" width="340" height="86" rx="14" class="svg-fill svg-line" stroke-width="1.5"/>
+      <text x="390" y="106" class="svg-accent" font-size="12" font-weight="800">TRANSFERABLE</text>
+      <text x="390" y="128" class="svg-ink" font-size="12">Parked inside live transfer inscriptions.</text>
+      <text x="390" y="146" class="svg-ink" font-size="12">Moves only by sending those inscriptions.</text>
+
+      <path d="M200 166 C 200 196, 520 196, 520 168" class="svg-accent-s svg-none" stroke-width="2" marker-end="url(#bArrow)"/>
+      <defs><marker id="bArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" class="svg-accent"/></marker></defs>
+      <text x="360" y="214" text-anchor="middle" class="svg-accent" font-size="12" font-weight="700">token-transfer parks an amount</text>
+      <text x="360" y="232" text-anchor="middle" class="svg-muted" font-size="11">sending the resulting inscription credits the recipient's available balance</text>
+    </svg>
+  </div>
+  <figcaption>Only available balance can be spent by a new operation. This is why a wallet showing a healthy total balance can still fail a send.</figcaption>
+</figure>
+
+<ul class="rules">
+  <li class="rule"><span class="rid">W-1</span><div class="rtext"><p><b>Available</b> is what a new operation may spend. <b>Transferable</b> is what is parked in live transfer inscriptions. <b>Total</b> is their sum.</p></div></li>
+  <li class="rule"><span class="rid">W-2</span><div class="rtext"><p>Operations that spend available balance only: <code>token-transfer</code>, <code>token-send</code>, a <code>token-auth</code> redeem, and the seller side of <code>token-trade</code>.</p></div></li>
+  <li class="rule"><span class="rid">W-3</span><div class="rtext"><p>A transfer inscription has exactly two states: live, and consumed. It is consumed the first time it is sent to a different address, and it can never move tokens again.</p></div></li>
+  <li class="rule"><span class="rid">W-4</span><div class="rtext"><p>Messages are applied in confirmation order. Within a block, they are applied in the order the block orders the transactions.</p></div></li>
+  <li class="rule"><span class="rid">W-5</span><div class="rtext"><p>State is a pure function of the confirmed chain. Two indexers reading the same chain to the same height must produce the same balances. Where they do not, one of them is wrong; the chain is not ambiguous.</p></div></li>
+</ul>
+
+<h2 id="activation">8. Activation heights</h2>
+
+<div class="scroll-x">
+<table>
+  <caption>Dogecoin mainnet heights at which behaviour changes. An indexer must reproduce the old behaviour below each height.</caption>
+  <thead><tr><th>Height</th><th>Change</th><th>Source</th></tr></thead>
+  <tbody>
+    <tr><td><code>4,600,000</code></td><td>First Dogecoin mainnet height at which inscriptions are indexed.</td><td>ord-dogecoin, Universe decision</td></tr>
+    <tr><td><code>4,771,259</code></td><td>Ord wallet 1.0.1 behaviour becomes required. This is also the beginning of Dogemap.</td><td>Dogecoin TAP specification</td></tr>
+    <tr><td><code>5,487,639</code></td><td>Ticker lengths widen from "3, or 5 to 32" to "1 to 32" Unicode symbols.</td><td>Dogecoin TAP specification</td></tr>
+    <tr><td><code>5,497,100</code></td><td>DMT element field numbers and the <code>blk</code> value must be precise. Below this height they are read with JavaScript <code>parseInt</code> rules.</td><td>Dogecoin TAP specification</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>The TAP protocol follows ord wallet releases conservatively rather than adopting every release, and announces supported upgrades with a grace period so indexers can prepare. An indexer that silently tracks the newest ord release is not conforming.</p>
+
+<h2 id="invalid">9. Invalid conditions</h2>
+
+<p>Each of these produces no state change. Nothing partial is applied and nothing is queued for later.</p>
+
+<div class="scroll-x">
+<table>
+  <caption>Conditions under which a message creates no TAP state, and where the rule lives.</caption>
+  <thead><tr><th>Condition</th><th>Rule</th></tr></thead>
+  <tbody>
+    <tr><td>The envelope is in an input other than input 0.</td><td>E-1</td></tr>
+    <tr><td>The signature script contains a non-push opcode, including a ported <code>OP_FALSE OP_IF</code> envelope.</td><td>E-2</td></tr>
+    <tr><td>The first push is not exactly <code>ord</code>, or the piece count is zero.</td><td>E-3, E-4</td></tr>
+    <tr><td>A countdown value does not equal the current piece count minus one.</td><td>E-6</td></tr>
+    <tr><td>The reveal chain ends before the countdown reaches zero.</td><td>E-9</td></tr>
+    <tr><td>The body is not valid UTF-8 JSON, or is not a single object.</td><td>P-1</td></tr>
+    <tr><td><code>p</code> is not exactly <code>tap</code>, or <code>op</code> is not one of the eleven names.</td><td>P-2, P-3</td></tr>
+    <tr><td>An amount is not a plain decimal string, or a ticker breaks the length rule for its height.</td><td>P-5, P-7</td></tr>
+    <tr><td>An address is not a valid Dogecoin mainnet address.</td><td>P-9, I-3</td></tr>
+    <tr><td>A ticker is deployed twice.</td><td>D-2</td></tr>
+    <tr><td>A mint exceeds <code>lim</code>, or a transfer exceeds available balance.</td><td>M-2, X-4</td></tr>
+    <tr><td>An internal operation is never tapped, or is sent to an address other than its own.</td><td>T-1, T-2</td></tr>
+    <tr><td>A trade is filled after <code>valid</code>, or filled for a token not in <code>accept</code>.</td><td>R-2, R-8</td></tr>
+    <tr><td>An authority hash has been used before, or the referenced authority is cancelled.</td><td>A-3, A-7</td></tr>
+    <tr><td><code>seq</code> is passed as a string in a hashed verification.</td><td>V-4</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="defects">10. Defects in the published specification text</h2>
+
+<p>The Dogecoin TAP specification was derived from the Bitcoin TAP document, and three Bitcoin artefacts survived the derivation. They are documented here so an implementer reading the upstream text is not misled, and so a reader can tell a documentation artefact from a protocol rule.</p>
+
+<ul class="rules">
+  <li class="rule"><span class="rid">Q-1</span><div class="rtext"><p>The <code>token-send</code> section states that recipient addresses "must be valid Bitcoin addresses" and adds a rule about lowercasing addresses that begin with <code>bc1</code>. On Dogecoin the recipient must be a valid Dogecoin mainnet address, and there is no bech32 form to lowercase. Dogecoin base58 addresses are case-sensitive; changing their case invalidates the checksum.</p></div></li>
+  <li class="rule"><span class="rid">Q-2</span><div class="rtext"><p>Every address in the published examples is a Bitcoin bech32 or bech32m address. Read them as placeholders. A payload built by copying one of those examples verbatim sends to an address that cannot exist on Dogecoin.</p></div></li>
+  <li class="rule"><span class="rid">Q-3</span><div class="rtext"><p>The privilege authority section states an activation "block height 841682". That is a Bitcoin height, and Dogecoin passed 841682 many years before inscriptions existed on it. Treat privilege authorities as available on Dogecoin over the whole indexed range and confirm the intended activation with the protocol authors before relying on a boundary there.</p></div></li>
+</ul>
+
+<div class="note">
+  <b class="lbl">Check your payload</b>
+  <p>The <a href="validator.html">validator</a> implements the rules on this page, including the address checks in Q-1 and Q-2. It runs entirely in your browser.</p>
+</div>
+
+</div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <section>
+        <h2>This document</h2>
+        <dl class="meta-list">
+          <div><dt>Owning repository</dt><dd><a href="https://github.com/bitcoinuniverseio/tap-on-doge">bitcoinuniverseio/tap-on-doge</a></dd></div>
+          <div><dt>Source path</dt><dd><code>spec.html</code></dd></div>
+          <div><dt>Document version</dt><dd>1.0.0</dd></div>
+          <div><dt>Lifecycle</dt><dd>Experimental</dd></div>
+          <div><dt>Chain and network</dt><dd>Dogecoin mainnet</dd></div>
+          <div><dt>Last verified</dt><dd><time datetime="2026-09-01">2026-09-01</time></dd></div>
+        </dl>
+      </section>
+      <section>
+        <h2>Documentation</h2>
+        <ul>
+          <li><a href="index.html">Overview</a></li>
+          <li><a href="spec.html">Specification</a></li>
+          <li><a href="guide.html">Guide</a></li>
+          <li><a href="reference.html">Reference</a></li>
+          <li><a href="vectors.html">Test vectors</a></li>
+          <li><a href="validator.html">Validator</a></li>
+          <li><a href="changelog.html">Changelog</a></li>
+        </ul>
+      </section>
+      <section>
+        <h2>Elsewhere</h2>
+        <ul>
+          <li><a href="https://docs.bitcoinuniverse.io">docs.bitcoinuniverse.io</a></li>
+          <li><a href="https://bitcoinuniverseio.github.io/tap/">TAP on Bitcoin</a></li>
+          <li><a href="https://github.com/Trac-Systems/doge-tap-protocol-specs">Dogecoin TAP specification</a></li>
+          <li><a href="https://github.com/Trac-Systems/ord-dogecoin">ord-dogecoin</a></li>
+          <li><a href="https://github.com/bitcoinuniverseio/tap-on-doge/edit/main/spec.html">Edit this page on GitHub</a></li>
+        </ul>
+      </section>
+    </div>
+    <p class="foot-bottom"><span>TAP on Doge documentation, Bitcoin Universe.</span> <span>TAP is a protocol of Trac Systems.</span> <span>Content licensed under the repository LICENSE.</span></p>
+  </div>
+</footer>
+
+<script src="site.js" defer></script>
+</body>
+</html>
