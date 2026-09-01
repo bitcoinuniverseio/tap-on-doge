@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TAP on Doge test vectors</title>
+<meta name="description" content="Accepted and rejected envelope and payload vectors for TAP on Dogecoin mainnet, each with the exact reason and the rule it exercises, derived from the Doginals parser and the Dogecoin TAP specification.">
+<link rel="canonical" href="https://bitcoinuniverseio.github.io/tap-on-doge/vectors.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="TAP on Doge documentation">
+<meta property="og:title" content="TAP on Doge test vectors">
+<meta property="og:description" content="Accepted and rejected envelope and payload vectors with expected outcomes, for implementers of TAP on Dogecoin.">
+<meta property="og:url" content="https://bitcoinuniverseio.github.io/tap-on-doge/vectors.html">
+<meta property="og:image" content="https://bitcoinuniverseio.github.io/tap-on-doge/og.svg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#f7f1e4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#17120d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-base="">
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-head">
+  <div class="wrap head-row">
+    <a class="brand" href="index.html"><span class="mark" aria-hidden="true">Ð</span><span>TAP on Doge<small>Bitcoin Universe</small></span></a>
+    <nav class="site-nav" aria-label="Documentation sections">
+      <ul>
+        <li><a href="index.html">Overview</a></li>
+        <li><a href="spec.html">Specification</a></li>
+        <li><a href="guide.html">Guide</a></li>
+        <li><a href="reference.html">Reference</a></li>
+        <li><a href="vectors.html" aria-current="page">Test vectors</a></li>
+        <li><a href="validator.html">Validator</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+    </nav>
+    <div class="head-tools">
+      <div class="search">
+        <label class="skip" for="q">Search this documentation</label>
+        <input id="q" type="search" placeholder="Search, or press /" autocomplete="off" spellcheck="false">
+        <div id="search-results" class="search-results" hidden role="region" aria-label="Search results" aria-live="polite"></div>
+      </div>
+      <button id="theme-toggle" class="theme-btn" type="button" hidden>☽</button>
+    </div>
+  </div>
+</header>
+
+<main id="main" class="page">
+<div class="wrap">
+
+<p class="crumb">Conformance evidence</p>
+<h1>Test vectors</h1>
+<p class="lede">Cases an implementation must reproduce. The envelope vectors are derived from the parser in <code>ord-dogecoin</code>, the Doginals client the Dogecoin TAP specification names. The payload vectors follow the specification and the behaviour of the Bitcoin Universe Dogecoin TAP source.</p>
+
+<div class="note">
+  <b class="lbl">How to read these</b>
+  <p>Every vector states an input, an expected outcome, and the rule number it exercises. "Nothing indexed" means no inscription, no TAP message, and no state change, not a partial result. Payload vectors can be pasted straight into the <a href="validator.html">validator</a>.</p>
+</div>
+
+<nav class="toc" aria-labelledby="toch">
+  <h2 id="toch">On this page</h2>
+  <ol>
+    <li><a href="#envelope">Envelope vectors</a></li>
+    <li><a href="#accepted">Accepted payloads</a></li>
+    <li><a href="#rejected">Rejected payloads</a></li>
+    <li><a href="#addresses">Address vectors</a></li>
+    <li><a href="#state">State transition vectors</a></li>
+  </ol>
+</nav>
+
+<h2 id="envelope">Envelope vectors</h2>
+
+<p>Each of these is the raw signature script of an input, as hexadecimal. The parser decodes push operations only, and reads the first input of the transaction.</p>
+
+<h3 id="v-e1">E1: complete single-transaction envelope, accepted</h3>
+<pre><code>input 0 scriptSig:
+036f7264 51 18 746578742f706c61696e3b636861727365743d7574662d38 00 04 776f6f66
+
+decoded pushes:
+  "ord"                       protocol marker
+  OP_1                        piece count = 1
+  "text/plain;charset=utf-8"  content type
+  OP_0                        countdown = 0, which is piece count minus one
+  "woof"                      body chunk</code></pre>
+<p><b>Expected:</b> complete inscription, content type <code>text/plain;charset=utf-8</code>, body <code>woof</code>. Exercises <a href="spec.html#envelope">E-2 through E-7</a>.</p>
+
+<h3 id="v-e2">E2: a real TAP mint envelope, accepted</h3>
+<pre><code>input 0 scriptSig:
+036f7264 51 18 746578742f706c61696e3b636861727365743d7574662d38 00 37
+7b2270223a22746170222c226f70223a22746f6b656e2d6d696e74222c227469
+636b223a22746170222c22616d74223a2231303030227d
+
+body, decoded as UTF-8:
+{"p":"tap","op":"token-mint","tick":"tap","amt":"1000"}</code></pre>
+<p><b>Expected:</b> complete inscription; the body parses as a TAP message and credits 1000 of ticker <code>tap</code> to the address holding the inscription output, provided the deployment permits it. The body is 55 bytes, so <code>0x37</code> is the push length and one chunk suffices. Exercises E-2 through E-7 and <a href="spec.html#payload">P-1 through P-3</a>.</p>
+
+<h3 id="v-e3">E3: countdown mismatch, rejected</h3>
+<pre><code>input 0 scriptSig:
+036f7264 52 18 746578742f706c61696e3b636861727365743d7574662d38 53 04 776f6f66 00 04 776f6f66
+
+decoded pushes:
+  "ord"     OP_2 (piece count = 2)     content type
+  OP_3      "woof"    OP_0    "woof"
+            ^ countdown is 3, but piece count minus one is 1</code></pre>
+<p><b>Expected:</b> <b>partial</b>, therefore nothing indexed. The mismatch stops body accumulation, and because there is no following transaction the parse ends partial. Exercises <a href="spec.html#envelope">E-6</a> and <a href="spec.html#envelope">E-9</a>.</p>
+
+<h3 id="v-e4">E4: envelope in the second input, rejected</h3>
+<pre><code>input 0 scriptSig: (empty)
+input 1 scriptSig: 036f7264 51 18 746578742f706c61696e3b636861727365743d7574662d38 00 04 776f6f66</code></pre>
+<p><b>Expected:</b> no inscription. A perfectly well formed envelope in any input other than input 0 is ignored. Exercises <a href="spec.html#envelope">E-1</a>.</p>
+
+<h3 id="v-e5">E5: a ported Bitcoin witness envelope, rejected</h3>
+<pre><code>scriptSig containing:  OP_FALSE OP_IF "ord" 01 &lt;content type&gt; OP_0 &lt;body&gt; OP_ENDIF</code></pre>
+<p><b>Expected:</b> no inscription. <code>OP_IF</code> is <code>0x63</code>, which is not a push opcode, so the decode ends immediately and yields no pushes at all. This is the single most likely failure for an inscriber ported from Bitcoin without changing the carrier. Exercises <a href="spec.html#envelope">E-2</a>.</p>
+
+<h3 id="v-e6">E6: piece count of zero, rejected</h3>
+<pre><code>input 0 scriptSig:
+036f7264 00 18 746578742f706c61696e3b636861727365743d7574662d38 ...
+                ^ OP_0 decodes to a piece count of 0</code></pre>
+<p><b>Expected:</b> no inscription. A zero piece count is invalid. Exercises <a href="spec.html#envelope">E-4</a>.</p>
+
+<h3 id="v-e7">E7: reveal chain that ends early, rejected</h3>
+<pre><code>tx 1, input 0: "ord" OP_3 &lt;content type&gt; OP_2 &lt;chunk&gt; OP_1 &lt;chunk&gt;
+tx 2:          does not exist</code></pre>
+<p><b>Expected:</b> <b>partial</b>, therefore nothing indexed. Two of three chunks are present and the countdown never reaches zero. The fees for tx 1 are spent and the remaining chunk cannot be supplied later. Exercises <a href="spec.html#envelope">E-9</a>.</p>
+
+<h3 id="v-e8">E8: reveal chain continued correctly, accepted</h3>
+<pre><code>tx 1, input 0: "ord" OP_3 &lt;content type&gt; OP_2 &lt;chunk A&gt; OP_1 &lt;chunk B&gt;
+tx 2, input 0: OP_0 &lt;chunk C&gt;</code></pre>
+<p><b>Expected:</b> complete inscription with body <code>A || B || C</code>. The first push of tx 2's input 0 must be exactly the next countdown value. Exercises <a href="spec.html#envelope">E-8</a>.</p>
+
+<h2 id="accepted">Accepted payloads</h2>
+
+<div class="scroll-x">
+<table>
+  <caption>Payloads that produce state. Each assumes the surrounding conditions its notes name.</caption>
+  <thead><tr><th>Vector</th><th>Payload</th><th>Outcome</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><b>A1</b><br>deploy</td>
+      <td><pre><code>{"p":"tap","op":"token-deploy",
+ "tick":"tap","max":"21000000",
+ "lim":"1000"}</code></pre></td>
+      <td>Creates ticker <code>tap</code> with maximum supply 21000000 and a per-mint limit of 1000, if the ticker is not already deployed. Rule <a href="spec.html#op-deploy">D-1</a>.</td>
+    </tr>
+    <tr>
+      <td><b>A2</b><br>deploy, no limit</td>
+      <td><pre><code>{"p":"tap","op":"token-deploy",
+ "tick":"doge","max":"1000000"}</code></pre></td>
+      <td>Valid. Without <code>lim</code>, the whole supply may be minted in a single mint. Rule D-1.</td>
+    </tr>
+    <tr>
+      <td><b>A3</b><br>mint</td>
+      <td><pre><code>{"p":"tap","op":"token-mint",
+ "tick":"tap","amt":"1000"}</code></pre></td>
+      <td>Credits 1000 to the address holding the inscription, if supply remains and 1000 is within <code>lim</code>. Rules <a href="spec.html#op-mint">M-1 to M-3</a>.</td>
+    </tr>
+    <tr>
+      <td><b>A4</b><br>transfer</td>
+      <td><pre><code>{"p":"tap","op":"token-transfer",
+ "tick":"tap","amt":"100"}</code></pre></td>
+      <td>Moves 100 from available to transferable and creates a live transfer inscription. No recipient is named or needed. Rules <a href="spec.html#op-transfer">X-1, X-2</a>.</td>
+    </tr>
+    <tr>
+      <td><b>A5</b><br>cursed ticker</td>
+      <td><pre><code>{"p":"tap","op":"token-mint",
+ "tick":"-tap","amt":"1"}</code></pre></td>
+      <td>Valid. <code>-tap</code> is a distinct ticker from <code>tap</code>, reached through a cursed inscription. Rule <a href="spec.html#payload">P-6</a>.</td>
+    </tr>
+    <tr>
+      <td><b>A6</b><br>batch send</td>
+      <td><pre><code>{"p":"tap","op":"token-send",
+ "items":[{"tick":"tap","amt":"1",
+ "address":
+ "DHZqJo3DUyhQsrdR3Kcs8xvfaMzPkzE5gP"}]}</code></pre></td>
+      <td>Syntactically valid. It moves nothing until it is inscribed to the sender's own address and tapped. Rules <a href="spec.html#op-send">N-1 to N-5</a>.</td>
+    </tr>
+    <tr>
+      <td><b>A7</b><br>block transferables</td>
+      <td><pre><code>{"p":"tap",
+ "op":"block-transferables"}</code></pre></td>
+      <td>Valid with no other fields. Takes effect only once tapped. Rules <a href="spec.html#op-block">B-1, B-2</a>.</td>
+    </tr>
+    <tr>
+      <td><b>A8</b><br>DMT mint</td>
+      <td><pre><code>{"p":"tap","op":"dmt-mint",
+ "tick":"dogenat","blk":5000000,
+ "dep":"825e287b…a3dci0"}</code></pre></td>
+      <td>Valid. <code>blk</code> is a JSON integer, which is required from block 5,497,100 onward. Rules <a href="spec.html#op-dmt">G-3, G-4</a>.</td>
+    </tr>
+    <tr>
+      <td><b>A9</b><br>unknown field</td>
+      <td><pre><code>{"p":"tap","op":"token-mint",
+ "tick":"tap","amt":"1",
+ "note":"hello"}</code></pre></td>
+      <td>Valid. Unknown fields are ignored, never fatal and never meaningful. The validator raises a caution because an unknown field is often a misspelled required one. Rule <a href="spec.html#payload">P-4</a>.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="rejected">Rejected payloads</h2>
+
+<div class="scroll-x">
+<table>
+  <caption>Payloads that create no state. Several of these confirm on chain and cost a full fee before doing nothing.</caption>
+  <thead><tr><th>Vector</th><th>Payload</th><th>Why it is rejected</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><b>R1</b><br>DRC-20 operation name</td>
+      <td><pre><code>{"p":"tap","op":"mint",
+ "tick":"tap","amt":"1000"}</code></pre></td>
+      <td><span class="no">Inert.</span> <code>mint</code> is the DRC-20 and BRC-20 spelling. TAP prefixes its token operations, so this should be <code>token-mint</code>. No TAP indexer recognises it, and no DRC-20 indexer claims it either because <code>p</code> is not <code>drc-20</code>. The inscription confirms, the fee is spent, and nothing else happens. Rule <a href="spec.html#payload">P-3</a>.</td>
+    </tr>
+    <tr>
+      <td><b>R2</b><br>DRC-20 transfer name</td>
+      <td><pre><code>{"p":"tap","op":"transfer",
+ "tick":"tap","amt":"100"}</code></pre></td>
+      <td><span class="no">Inert.</span> Same failure as R1. The correct operation is <code>token-transfer</code>. Rule P-3.</td>
+    </tr>
+    <tr>
+      <td><b>R3</b><br>recipient on a transfer</td>
+      <td><pre><code>{"p":"tap","op":"token-transfer",
+ "tick":"tap","amt":"100",
+ "to":"DHZqJo3D…"}</code></pre></td>
+      <td><span class="part">Parks, does not send.</span> <code>to</code> is not a field of <code>token-transfer</code> and is ignored. The amount is parked as a transfer inscription that you still hold. Anyone expecting the tokens to have arrived is wrong. Rules <a href="spec.html#op-transfer">X-1</a>, P-4.</td>
+    </tr>
+    <tr>
+      <td><b>R4</b><br>Bitcoin recipient</td>
+      <td><pre><code>{"p":"tap","op":"token-send",
+ "items":[{"tick":"tap","amt":"1",
+ "address":"bc1p9lpne8pnzq87…"}]}</code></pre></td>
+      <td><span class="no">Invalid.</span> The recipient is a Bitcoin bech32m address, which cannot exist on Dogecoin. Under N-3 a syntactically invalid item invalidates the whole inscription before tapping. Rules <a href="spec.html#op-send">N-3, N-6</a>, <a href="spec.html#identifiers">I-3</a>.</td>
+    </tr>
+    <tr>
+      <td><b>R5</b><br>wrong protocol tag</td>
+      <td><pre><code>{"p":"drc-20","op":"token-mint",
+ "tick":"tap","amt":"1000"}</code></pre></td>
+      <td><span class="no">Inert.</span> The reverse mistake. <code>token-mint</code> is not a DRC-20 operation, and the tag is not <code>tap</code>, so neither protocol reads it. Rule <a href="spec.html#payload">P-2</a>.</td>
+    </tr>
+    <tr>
+      <td><b>R6</b><br>uppercase protocol tag</td>
+      <td><pre><code>{"p":"TAP","op":"token-mint",
+ "tick":"tap","amt":"1"}</code></pre></td>
+      <td><span class="no">Invalid.</span> <code>p</code> must be exactly the lowercase string <code>tap</code>. Rule P-2.</td>
+    </tr>
+    <tr>
+      <td><b>R7</b><br>amount with separators</td>
+      <td><pre><code>{"p":"tap","op":"token-mint",
+ "tick":"tap","amt":"1,000"}</code></pre></td>
+      <td><span class="no">Invalid.</span> Amounts are plain decimal strings: digits with at most one <code>.</code>, no separators, no sign, no exponent. Rule <a href="spec.html#payload">P-5</a>.</td>
+    </tr>
+    <tr>
+      <td><b>R8</b><br>ticker of two symbols before the widening</td>
+      <td><pre><code>{"p":"tap","op":"token-deploy",
+ "tick":"ab","max":"100"}</code></pre></td>
+      <td><span class="part">Height dependent.</span> Invalid below block 5,487,639, where only 3 or 5 to 32 symbols were allowed. Valid from that height onward. An indexer that applies today's rule to historical blocks produces wrong balances. Rule <a href="spec.html#payload">P-7</a>.</td>
+    </tr>
+    <tr>
+      <td><b>R9</b><br>ticker of 33 symbols</td>
+      <td><pre><code>{"p":"tap","op":"token-deploy",
+ "tick":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+ "max":"100"}</code></pre></td>
+      <td><span class="no">Invalid.</span> 32 Unicode symbols is the ceiling at every height. Rule P-7.</td>
+    </tr>
+    <tr>
+      <td><b>R10</b><br>seq as a string</td>
+      <td><pre><code>{"p":"tap","op":"privilege-auth",
+ …,"verify":"…","col":"","seq":"111"}</code></pre></td>
+      <td><span class="no">Invalid.</span> The specification states explicitly that a string <code>seq</code> fails the verification. It must be a JSON integer. This is the opposite of the convention for amounts, which is why it is easy to get wrong. Rule <a href="spec.html#op-privilege">V-4</a>.</td>
+    </tr>
+    <tr>
+      <td><b>R11</b><br>trade filled with a token not offered</td>
+      <td><pre><code>{"p":"tap","op":"token-trade",
+ "side":"1","trade":"…i0",
+ "tick":"other","amt":"1"}</code></pre></td>
+      <td><span class="no">Invalid.</span> <code>tick</code> and <code>amt</code> must match exactly one entry of the referenced trade's <code>accept</code> array. Rule <a href="spec.html#op-trade">R-8</a>.</td>
+    </tr>
+    <tr>
+      <td><b>R12</b><br>inscription number instead of id</td>
+      <td><pre><code>{"p":"tap","op":"token-trade",
+ "side":"0","trade":"12345"}</code></pre></td>
+      <td><span class="no">Invalid.</span> Reference fields take the inscription id, <code>&lt;64 hex txid&gt;i&lt;index&gt;</code>, never the inscription number. Rule <a href="spec.html#identifiers">I-1</a>.</td>
+    </tr>
+    <tr>
+      <td><b>R13</b><br>JSON array</td>
+      <td><pre><code>[{"p":"tap","op":"token-mint",
+ "tick":"tap","amt":"1"}]</code></pre></td>
+      <td><span class="no">Invalid.</span> A TAP message is exactly one JSON object. Batching is done with <code>token-send</code>, not with an array of messages. Rule <a href="spec.html#payload">P-1</a>.</td>
+    </tr>
+    <tr>
+      <td><b>R14</b><br>reused authority hash</td>
+      <td><pre><code>{"p":"tap","op":"token-auth",
+ "sig":{…},"hash":"&lt;already used&gt;",
+ "salt":"…","auth":["gib"]}</code></pre></td>
+      <td><span class="no">Invalid.</span> A hash may be used once across the entire protocol state. This is why the authority must vary its <code>salt</code>. Rule <a href="spec.html#op-auth">A-3</a>.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="addresses">Address vectors</h2>
+
+<p>These exist because the published Dogecoin specification carries Bitcoin address wording and Bitcoin example addresses. The two valid addresses below are documentation examples with correct checksums; no one holds their keys.</p>
+
+<div class="scroll-x">
+<table>
+  <caption>Address forms and their outcome in a Dogecoin TAP payload.</caption>
+  <thead><tr><th>Address</th><th>Decodes to</th><th>Outcome</th></tr></thead>
+  <tbody>
+    <tr><td><code>DHZqJo3DUyhQsrdR3Kcs8xvfaMzPkzE5gP</code></td><td>25 bytes, version <code>0x1e</code></td><td><span class="yes">Valid</span> Dogecoin mainnet pay-to-public-key-hash.</td></tr>
+    <tr><td><code>AEjn4gLcgt9FydZmPEx7qRWi68AtuF9YPH</code></td><td>25 bytes, version <code>0x16</code></td><td><span class="yes">Valid</span> Dogecoin mainnet pay-to-script-hash. Note that the Bitcoin Universe marketplace surface accepts <code>0x1e</code> only, per <a href="spec.html#identifiers">I-5</a>.</td></tr>
+    <tr><td><code>DHZqJo3DUyhQsrdR3Kcs8xvfaMzPkzE5gQ</code></td><td>25 bytes, bad checksum</td><td><span class="no">Invalid.</span> One changed character breaks the base58check checksum.</td></tr>
+    <tr><td><code>dHZqJo3DUyhQsrdR3Kcs8xvfaMzPkzE5gP</code></td><td>fails</td><td><span class="no">Invalid.</span> Dogecoin base58 addresses are case-sensitive. The Bitcoin rule about lowercasing <code>bc1</code> addresses has no counterpart here. Rule <a href="spec.html#identifiers">I-4</a>.</td></tr>
+    <tr><td><code>bc1p9lpne8pnzq87dpygtqdd9vd3w28fknwwgv362xff9zv4ewxg6was504w20</code></td><td>not base58</td><td><span class="no">Invalid.</span> A Bitcoin bech32m address, copied from the published examples. Rule <a href="spec.html#defects">Q-2</a>.</td></tr>
+    <tr><td><code>1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2</code></td><td>version <code>0x00</code></td><td><span class="no">Invalid.</span> A Bitcoin base58 address. Correct checksum, wrong chain.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="state">State transition vectors</h2>
+
+<p>Balances after each step. Start from address <b>D1</b> holding 500 of ticker <code>tap</code>, all available.</p>
+
+<div class="scroll-x">
+<table>
+  <caption>A transfer, end to end. Total balance is unchanged by step 2, which is where most confusion begins.</caption>
+  <thead><tr><th>Step</th><th>Action</th><th>D1 available</th><th>D1 transferable</th><th>D2 available</th></tr></thead>
+  <tbody>
+    <tr><td>0</td><td>Starting state</td><td>500</td><td>0</td><td>0</td></tr>
+    <tr><td>1</td><td>D1 inscribes <code>token-transfer</code> for 100, unconfirmed</td><td>500</td><td>0</td><td>0</td></tr>
+    <tr><td>2</td><td>That inscription confirms</td><td>400</td><td>100</td><td>0</td></tr>
+    <tr><td>3</td><td>D1 sends the inscription to D2, confirmed</td><td>400</td><td>0</td><td>100</td></tr>
+    <tr><td>4</td><td>D2 tries to send that same inscription onward</td><td>400</td><td>0</td><td>100</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Step 4 changes nothing: the transfer inscription was consumed at step 3 and can never move tokens again. D2 owns 100 tokens as available balance and must inscribe its own <code>token-transfer</code> to move them. Rules <a href="spec.html#state">W-3</a> and <a href="spec.html#op-transfer">X-3</a>.</p>
+
+<div class="scroll-x">
+<table>
+  <caption>A batch send that is partly unfunded. Syntax is atomic; semantics are not.</caption>
+  <thead><tr><th>Step</th><th>Action</th><th>Result</th></tr></thead>
+  <tbody>
+    <tr><td>0</td><td>D1 holds 50 available, 0 transferable</td><td>Starting state.</td></tr>
+    <tr><td>1</td><td>D1 inscribes a <code>token-send</code> with two items: 30 to D2 and 40 to D3</td><td>Both items are syntactically valid, so the inscription is valid. Nothing has moved. Rule <a href="spec.html#op-send">N-3</a>.</td></tr>
+    <tr><td>2</td><td>D1 taps it</td><td>The 30 to D2 executes. The 40 to D3 is skipped: only 20 remains available. D1 ends with 20 available, D2 gains 30, D3 gains nothing. Rule <a href="spec.html#op-send">N-4</a>.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="scroll-x">
+<table>
+  <caption>Tapping. An internal operation that is never tapped has no effect at all.</caption>
+  <thead><tr><th>Step</th><th>Action</th><th>Result</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>D1 inscribes <code>block-transferables</code> to itself, confirmed</td><td>No effect. The address still accepts inbound transfers. Rule <a href="spec.html#tapping">T-2</a>.</td></tr>
+    <tr><td>2</td><td>D1 sends that inscription to D2</td><td>Still no effect, and the opportunity is gone: the inscription is no longer at the address it was meant to protect. Rule T-1.</td></tr>
+    <tr><td>3</td><td>Alternative: D1 sends it to D1 instead</td><td>Tapped. Inbound inscribe transfers to D1 are now skipped. Existing live transfer inscriptions elsewhere remain usable. Rule <a href="spec.html#op-block">B-2</a>.</td></tr>
+  </tbody>
+</table>
+</div>
+
+</div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <section>
+        <h2>This document</h2>
+        <dl class="meta-list">
+          <div><dt>Owning repository</dt><dd><a href="https://github.com/bitcoinuniverseio/tap-on-doge">bitcoinuniverseio/tap-on-doge</a></dd></div>
+          <div><dt>Source path</dt><dd><code>vectors.html</code></dd></div>
+          <div><dt>Document version</dt><dd>1.0.0</dd></div>
+          <div><dt>Lifecycle</dt><dd>Experimental</dd></div>
+          <div><dt>Chain and network</dt><dd>Dogecoin mainnet</dd></div>
+          <div><dt>Last verified</dt><dd><time datetime="2026-09-01">2026-09-01</time></dd></div>
+        </dl>
+      </section>
+      <section>
+        <h2>Documentation</h2>
+        <ul>
+          <li><a href="index.html">Overview</a></li>
+          <li><a href="spec.html">Specification</a></li>
+          <li><a href="guide.html">Guide</a></li>
+          <li><a href="reference.html">Reference</a></li>
+          <li><a href="vectors.html">Test vectors</a></li>
+          <li><a href="validator.html">Validator</a></li>
+          <li><a href="changelog.html">Changelog</a></li>
+        </ul>
+      </section>
+      <section>
+        <h2>Elsewhere</h2>
+        <ul>
+          <li><a href="https://docs.bitcoinuniverse.io">docs.bitcoinuniverse.io</a></li>
+          <li><a href="https://bitcoinuniverseio.github.io/tap/">TAP on Bitcoin</a></li>
+          <li><a href="https://github.com/Trac-Systems/doge-tap-protocol-specs">Dogecoin TAP specification</a></li>
+          <li><a href="https://github.com/Trac-Systems/ord-dogecoin">ord-dogecoin</a></li>
+          <li><a href="https://github.com/bitcoinuniverseio/tap-on-doge/edit/main/vectors.html">Edit this page on GitHub</a></li>
+        </ul>
+      </section>
+    </div>
+    <p class="foot-bottom"><span>TAP on Doge documentation, Bitcoin Universe.</span> <span>TAP is a protocol of Trac Systems.</span> <span>Content licensed under the repository LICENSE.</span></p>
+  </div>
+</footer>
+
+<script src="site.js" defer></script>
+</body>
+</html>

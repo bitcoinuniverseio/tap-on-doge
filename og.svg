@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-label="TAP on Doge documentation">
+  <title>TAP on Doge documentation</title>
+  <desc>A title card reading TAP on Doge, the TAP token protocol on Dogecoin inscriptions, with the four operation names and a note that a confirmation is about one minute.</desc>
+  <rect width="1200" height="630" fill="#f7f1e4"/>
+  <rect x="0" y="0" width="1200" height="12" fill="#8a4a12"/>
+  <circle cx="96" cy="96" r="34" fill="#8a4a12"/>
+  <text x="96" y="110" text-anchor="middle" font-family="Trebuchet MS, Segoe UI, sans-serif" font-size="42" font-weight="700" fill="#f7f1e4">&#208;</text>
+  <text x="150" y="90" font-family="Trebuchet MS, Segoe UI, sans-serif" font-size="22" font-weight="700" fill="#5c4d3a" letter-spacing="3">BITCOIN UNIVERSE</text>
+  <text x="150" y="120" font-family="Trebuchet MS, Segoe UI, sans-serif" font-size="20" fill="#5c4d3a">Dogecoin mainnet protocol documentation</text>
+  <text x="80" y="270" font-family="Trebuchet MS, Segoe UI, sans-serif" font-size="104" font-weight="800" fill="#241d13">TAP on Doge</text>
+  <text x="80" y="336" font-family="Segoe UI, system-ui, sans-serif" font-size="34" fill="#5c4d3a">The TAP token protocol on Dogecoin inscriptions.</text>
+  <text x="80" y="382" font-family="Segoe UI, system-ui, sans-serif" font-size="34" fill="#5c4d3a">A confirmation here is about one minute, not ten.</text>
+  <g font-family="ui-monospace, Consolas, monospace" font-size="26" fill="#8a4a12">
+    <rect x="80" y="440" width="230" height="56" rx="28" fill="#f6e6d0"/><text x="195" y="476" text-anchor="middle">token-deploy</text>
+    <rect x="326" y="440" width="200" height="56" rx="28" fill="#f6e6d0"/><text x="426" y="476" text-anchor="middle">token-mint</text>
+    <rect x="542" y="440" width="250" height="56" rx="28" fill="#f6e6d0"/><text x="667" y="476" text-anchor="middle">token-transfer</text>
+    <rect x="808" y="440" width="200" height="56" rx="28" fill="#f6e6d0"/><text x="908" y="476" text-anchor="middle">token-send</text>
+  </g>
+  <text x="80" y="570" font-family="Segoe UI, system-ui, sans-serif" font-size="24" fill="#5c4d3a">bitcoinuniverseio.github.io/tap-on-doge</text>
+</svg>

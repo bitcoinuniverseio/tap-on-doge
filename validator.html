@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TAP on Doge validator and confirmation comparator</title>
+<meta name="description" content="Check a TAP on Dogecoin payload in your browser, and convert any confirmation count into elapsed time on Dogecoin and Bitcoin. Client side only, nothing you paste is transmitted.">
+<link rel="canonical" href="https://bitcoinuniverseio.github.io/tap-on-doge/validator.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="TAP on Doge documentation">
+<meta property="og:title" content="TAP on Doge validator and confirmation comparator">
+<meta property="og:description" content="A client-side TAP on Dogecoin payload validator, plus a comparator for what a confirmation count means on a one-minute chain.">
+<meta property="og:url" content="https://bitcoinuniverseio.github.io/tap-on-doge/validator.html">
+<meta property="og:image" content="https://bitcoinuniverseio.github.io/tap-on-doge/og.svg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#f7f1e4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#17120d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-base="">
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-head">
+  <div class="wrap head-row">
+    <a class="brand" href="index.html"><span class="mark" aria-hidden="true">Ð</span><span>TAP on Doge<small>Bitcoin Universe</small></span></a>
+    <nav class="site-nav" aria-label="Documentation sections">
+      <ul>
+        <li><a href="index.html">Overview</a></li>
+        <li><a href="spec.html">Specification</a></li>
+        <li><a href="guide.html">Guide</a></li>
+        <li><a href="reference.html">Reference</a></li>
+        <li><a href="vectors.html">Test vectors</a></li>
+        <li><a href="validator.html" aria-current="page">Validator</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+    </nav>
+    <div class="head-tools">
+      <div class="search">
+        <label class="skip" for="q">Search this documentation</label>
+        <input id="q" type="search" placeholder="Search, or press /" autocomplete="off" spellcheck="false">
+        <div id="search-results" class="search-results" hidden role="region" aria-label="Search results" aria-live="polite"></div>
+      </div>
+      <button id="theme-toggle" class="theme-btn" type="button" hidden>☽</button>
+    </div>
+  </div>
+</header>
+
+<main id="main" class="page">
+<div class="wrap">
+
+<p class="crumb">Interactive tools</p>
+<h1>Validator and confirmation comparator</h1>
+<p class="lede">Two tools. One checks a TAP on Dogecoin payload against the rules on the <a href="spec.html">specification page</a>. The other converts a confirmation count into elapsed time on both chains, because that is the difference people most often carry over unchanged.</p>
+
+<ul class="pillrow">
+  <li class="pill">Rules from <b>document v1.0.0</b></li>
+  <li class="pill">Network <b>Dogecoin mainnet</b></li>
+  <li class="pill on">Runs <b>entirely in your browser</b></li>
+</ul>
+
+<div class="note">
+  <b class="lbl">Privacy</b>
+  <p>Both tools run in this page. Nothing you type is transmitted, stored, logged, or saved to your browser. This page makes no network request other than loading its own stylesheet, scripts, and search index. Reloading the page discards everything you entered.</p>
+</div>
+
+<h2 id="validator">TAP on Doge payload validator</h2>
+
+<p>Paste the exact JSON you intend to inscribe. The validator reports errors that make the payload invalid, cautions that usually mean a mistake, and notes about conditions it cannot check from the payload alone, such as whether a deployment still has supply.</p>
+
+<div class="tool">
+  <div id="v-nojs" class="nojs">
+    <p><b>This tool needs JavaScript.</b> With scripts disabled you can still check a payload by hand against the <a href="spec.html#operations">operation rules</a> and the <a href="vectors.html">test vectors</a>. The two things worth checking first are that <code>p</code> is exactly <code>tap</code>, and that the operation name is prefixed: <code>token-mint</code>, not <code>mint</code>.</p>
+  </div>
+
+  <form id="v-form" hidden onsubmit="return false;">
+    <div class="field">
+      <label for="payload">Payload JSON</label>
+      <p class="hint">The inscription body, exactly as it will be written.</p>
+      <textarea id="payload" spellcheck="false" autocomplete="off" aria-describedby="v-out">{
+  "p": "tap",
+  "op": "token-mint",
+  "tick": "tap",
+  "amt": "1000"
+}</textarea>
+    </div>
+    <ul class="chiprow">
+      <li><button class="chip" type="button" data-sample="deploy">token-deploy</button></li>
+      <li><button class="chip" type="button" data-sample="mint">token-mint</button></li>
+      <li><button class="chip" type="button" data-sample="transfer">token-transfer</button></li>
+      <li><button class="chip" type="button" data-sample="send">token-send</button></li>
+      <li><button class="chip" type="button" data-sample="dmt">dmt-mint</button></li>
+      <li><button class="chip" type="button" data-sample="badop">a DRC-20 operation name</button></li>
+      <li><button class="chip" type="button" data-sample="badaddr">a Bitcoin address</button></li>
+      <li><button class="chip" type="button" id="v-clear">Clear</button></li>
+    </ul>
+    <div id="v-out" role="status" aria-live="polite"></div>
+  </form>
+</div>
+
+<h3 id="checks">What it checks</h3>
+<ul>
+  <li>That the body is one JSON object, that <code>p</code> is exactly <code>tap</code>, and that <code>op</code> is one of the eleven operation names.</li>
+  <li>Bare DRC-20 and BRC-20 operation names under <code>p: "tap"</code>, naming the prefixed operation you meant. This is the failure that confirms on chain, costs a full fee, and is then read by nobody.</li>
+  <li>Required and unrecognised fields per operation, since a misspelled required field silently becomes a missing one.</li>
+  <li>Amount format, ticker length against both the pre and post block 5,487,639 rules, and a declared decimal scale within 0 to 18.</li>
+  <li>Every address, by base58check checksum and Dogecoin mainnet version byte, calling out Bitcoin addresses explicitly.</li>
+  <li>Inscription id shape wherever a field references another inscription, since those fields take ids and not numbers.</li>
+  <li>Payload byte length and the number of 520 byte chunks it needs.</li>
+</ul>
+
+<h3 id="cannot">What it cannot check</h3>
+<p>The validator sees one payload and nothing else. It cannot know whether a ticker is deployed, whether supply remains, whether an address holds the balance, whether a trade is still inside its <code>valid</code> window, or whether a signature verifies. Those depend on chain state at the moment the message is applied. A payload the validator accepts is well formed, not guaranteed to succeed.</p>
+
+<h2 id="comparator">Confirmation time comparator</h2>
+
+<p>A confirmation count is a unit of time, and the unit is different here. Dogecoin targets one minute per block; Bitcoin targets ten. Advice written for one chain buys a tenth or ten times the wait on the other.</p>
+
+<div class="tool">
+  <div id="c-nojs" class="nojs">
+    <p><b>This tool needs JavaScript.</b> The arithmetic is simple enough to do without it: on Dogecoin, confirmations are roughly minutes. On Bitcoin, multiply by ten. To wait as long as <em>n</em> Bitcoin confirmations you need about <em>10n</em> Dogecoin confirmations. The <a href="guide.html#confirmations">guide</a> has a table of common values.</p>
+  </div>
+
+  <form id="c-form" hidden onsubmit="return false;">
+    <div class="row">
+      <div class="field">
+        <label for="confs">Confirmations</label>
+        <input id="confs" type="number" min="1" max="10000" step="1" value="6" inputmode="numeric">
+      </div>
+    </div>
+    <ul class="chiprow">
+      <li><button class="chip" type="button" data-conf="1">1</button></li>
+      <li><button class="chip" type="button" data-conf="3">3</button></li>
+      <li><button class="chip" type="button" data-conf="6">6</button></li>
+      <li><button class="chip" type="button" data-conf="12">12</button></li>
+      <li><button class="chip" type="button" data-conf="40">40, the rollback window</button></li>
+      <li><button class="chip" type="button" data-conf="60">60</button></li>
+      <li><button class="chip" type="button" data-conf="144">144</button></li>
+    </ul>
+    <div id="c-out" role="status" aria-live="polite"></div>
+  </form>
+</div>
+
+<div class="note warn">
+  <b class="lbl">Minutes are not work</b>
+  <p>This tool converts block counts into elapsed time and nothing more. Dogecoin and Bitcoin are separate chains with separate hashrate and separate proof-of-work functions, so matching the minutes does not match the accumulated work. Dogecoin is merge-mined alongside Litecoin, so its security budget does not follow DOGE's price in a simple way. Choose a confirmation policy from the value at risk and from the reorg depths your indexer can survive. See <a href="reference.html#reorg">reorg behaviour</a>.</p>
+</div>
+
+</div>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <section>
+        <h2>This document</h2>
+        <dl class="meta-list">
+          <div><dt>Owning repository</dt><dd><a href="https://github.com/bitcoinuniverseio/tap-on-doge">bitcoinuniverseio/tap-on-doge</a></dd></div>
+          <div><dt>Source path</dt><dd><code>validator.html</code></dd></div>
+          <div><dt>Document version</dt><dd>1.0.0</dd></div>
+          <div><dt>Lifecycle</dt><dd>Experimental</dd></div>
+          <div><dt>Chain and network</dt><dd>Dogecoin mainnet</dd></div>
+          <div><dt>Last verified</dt><dd><time datetime="2026-09-01">2026-09-01</time></dd></div>
+        </dl>
+      </section>
+      <section>
+        <h2>Documentation</h2>
+        <ul>
+          <li><a href="index.html">Overview</a></li>
+          <li><a href="spec.html">Specification</a></li>
+          <li><a href="guide.html">Guide</a></li>
+          <li><a href="reference.html">Reference</a></li>
+          <li><a href="vectors.html">Test vectors</a></li>
+          <li><a href="validator.html">Validator</a></li>
+          <li><a href="changelog.html">Changelog</a></li>
+        </ul>
+      </section>
+      <section>
+        <h2>Elsewhere</h2>
+        <ul>
+          <li><a href="https://docs.bitcoinuniverse.io">docs.bitcoinuniverse.io</a></li>
+          <li><a href="https://bitcoinuniverseio.github.io/tap/">TAP on Bitcoin</a></li>
+          <li><a href="https://github.com/Trac-Systems/doge-tap-protocol-specs">Dogecoin TAP specification</a></li>
+          <li><a href="https://github.com/Trac-Systems/ord-dogecoin">ord-dogecoin</a></li>
+          <li><a href="https://github.com/bitcoinuniverseio/tap-on-doge/edit/main/validator.html">Edit this page on GitHub</a></li>
+        </ul>
+      </section>
+    </div>
+    <p class="foot-bottom"><span>TAP on Doge documentation, Bitcoin Universe.</span> <span>TAP is a protocol of Trac Systems.</span> <span>Content licensed under the repository LICENSE.</span></p>
+  </div>
+</footer>
+
+<script src="site.js" defer></script>
+<script src="validator.js" defer></script>
+</body>
+</html>
