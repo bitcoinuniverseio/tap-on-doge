@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "id": "tap-on-doge",
-  "name": "TAP on Dogecoin",
+  "name": "TAP on Doge",
   "classification": "protocol",
   "repository": "bitcoinuniverseio/tap-on-doge",
-  "documentationUrl": "https://docs.bitcoinuniverse.io/protocols/tap-on-doge/",
+  "documentationUrl": "https://docs.bitcoinuniverse.io/protocols/tap-on-doge",
   "docsRoot": ".",
   "sourceRef": "main",
   "lifecycle": "experimental",
@@ -17,19 +17,26 @@
     }
   ],
   "protocols": [
-    "tap"
+    "tap",
+    "doginals",
+    "dmt"
   ],
   "audiences": [
     "user",
+    "collector",
     "app-developer",
-    "protocol-implementer"
+    "protocol-implementer",
+    "indexer-operator"
+  ],
+  "specifications": [
+    "spec.html"
   ],
   "owners": [
     "bitcoinuniverseio"
   ],
   "lastVerified": {
-    "commit": "b465bfb6e14fe9dcd07cce4b37b2d01ab5674848",
-    "timestamp": "2026-09-01T02:00:00Z"
+    "commit": "f6e6163ac04489ba2419e03cede0d5b7121cc7ae",
+    "timestamp": "2026-09-01T00:00:00Z"
   },
   "securityClassification": "public"
 }
